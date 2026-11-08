@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cẩm Nang Toàn Tập Về `static` Trong Lập Trình Game Unity | Senior Unity Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <style>
+        :root[data-theme="dark"] {
+            --bg-body: #0a0e17;
+            --bg-sidebar: #0f1523;
+            --bg-card: #151c2e;
+            --bg-card-hover: #1b243b;
+            --bg-code: #0b0f19;
+            --bg-quote: rgba(56, 189, 248, 0.08);
+            --border-color: #222f49;
+            --border-accent: #38bdf8;
+            --border-danger: #f43f5e;
+            --border-success: #10b981;
+            --border-warning: #f59e0b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.25);
+            --accent-purple: #a855f7;
+            --tag-bg: rgba(56, 189, 248, 0.12);
+            --danger-bg: rgba(244, 63, 94, 0.1);
+            --danger-text: #fb7185;
+            --success-bg: rgba(16, 185, 129, 0.1);
+            --success-text: #34d399;
+            --warning-bg: rgba(245, 158, 11, 0.1);
+            --warning-text: #fbbf24;
+            --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+        }
+
+        :root[data-theme="light"] {
+            --bg-body: #f8fafc;
+            --bg-sidebar: #ffffff;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f1f5f9;
+            --bg-code: #0f172a;
+            --bg-quote: rgba(2, 132, 199, 0.06);
+            --border-color: #e2e8f0;
+            --border-accent: #0284c7;
+            --border-danger: #e11d48;
+            --border-success: #059669;
+            --border-warning: #d97706;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-dim: #94a3b8;
+            --accent: #0284c7;
+            --accent-glow: rgba(2, 132, 199, 0.2);
+            --accent-purple: #9333ea;
+            --tag-bg: rgba(2, 132, 199, 0.1);
+            --danger-bg: rgba(225, 29, 72, 0.08);
+            --danger-text: #be123c;
+            --success-bg: rgba(5, 150, 105, 0.08);
+            --success-text: #047857;
+            --warning-bg: rgba(217, 119, 6, 0.08);
+            --warning-text: #b45309;
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.7;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-size: 15px;
+        }
+
+        /* SIDEBAR NAVIGATION */
+        .sidebar {
+            width: 320px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--accent);
+            background: var(--tag-bg);
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-accent);
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.3;
+        }
+
+        .sidebar-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 16px 12px;
+            flex: 1;
+        }
+
+        .nav-item {
+            margin-bottom: 4px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.15s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--text-main);
+            background: var(--bg-card);
+        }
+
+        .nav-link.active {
+            color: var(--accent);
+            background: var(--tag-bg);
+            font-weight: 600;
+            border-left: 3px solid var(--accent);
+        }
+
+        .nav-sub {
+            list-style: none;
+            padding-left: 20px;
+            margin-top: 2px;
+        }
+
+        .nav-sub .nav-link {
+            font-size: 12.5px;
+            padding: 6px 10px;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .theme-toggle-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: 320px;
+            flex: 1;
+            padding: 40px 60px 80px;
+            max-width: 1140px;
+        }
+
+        /* HERO HEADER */
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 36px 40px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--accent), var(--accent-purple));
+        }
+
+        .hero-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .meta-pill {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pill-senior {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .pill-time {
+            background: var(--tag-bg);
+            color: var(--accent);
+            border: 1px solid var(--border-accent);
+        }
+
+        .pill-level {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        h1.hero-title {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.25;
+            margin-bottom: 12px;
+            background: linear-gradient(90deg, #f1f5f9 0%, #38bdf8 60%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        :root[data-theme="light"] h1.hero-title {
+            background: linear-gradient(90deg, #0f172a 0%, #0284c7 60%, #9333ea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 16px;
+            color: var(--text-muted);
+            max-width: 820px;
+            line-height: 1.6;
+        }
+
+        /* SECTIONS */
+        .doc-section {
+            margin-bottom: 56px;
+            scroll-margin-top: 24px;
+        }
+
+        .section-header {
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .section-header h2 {
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-main);
+        }
+
+        .section-header .section-tag {
+            font-size: 13px;
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--tag-bg);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .section-lead {
+            font-size: 15.5px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            line-height: 1.7;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 28px 0 12px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h4 {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 18px 0 8px;
+            color: var(--accent);
+        }
+
+        p {
+            margin-bottom: 14px;
+            color: var(--text-main);
+        }
+
+        strong {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        code.inline-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13.5px;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        /* SENIOR CALLOUT BOX */
+        .callout {
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin: 20px 0;
+            display: flex;
+            gap: 16px;
+            border-left: 4px solid;
+            background: var(--bg-card);
+        }
+
+        .callout-senior {
+            border-left-color: var(--accent-purple);
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(56, 189, 248, 0.05) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.25);
+            border-left: 4px solid var(--accent-purple);
+        }
+
+        .callout-warning {
+            border-left-color: var(--border-danger);
+            background: var(--danger-bg);
+            border: 1px solid rgba(244, 63, 94, 0.25);
+            border-left: 4px solid var(--border-danger);
+        }
+
+        .callout-tip {
+            border-left-color: var(--border-success);
+            background: var(--success-bg);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-left: 4px solid var(--border-success);
+        }
+
+        .callout-info {
+            border-left-color: var(--border-accent);
+            background: var(--tag-bg);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-left: 4px solid var(--border-accent);
+        }
+
+        .callout-icon {
+            font-size: 24px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .callout-content {
+            flex: 1;
+        }
+
+        .callout-title {
+            font-weight: 700;
+            font-size: 14.5px;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+
+        .callout-text {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            margin-bottom: 0;
+            line-height: 1.6;
+        }
+
+        /* GRID CARDS */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            margin: 20px 0;
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .info-card:hover {
+            border-color: var(--border-accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .icon-blue { background: rgba(56, 189, 248, 0.15); color: var(--accent); }
+        .icon-purple { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+        .icon-red { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+        .icon-green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .icon-yellow { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-main);
+        }
+
+        .card-body {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* SVG DIAGRAMS */
+        .diagram-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 24px;
+            margin: 24px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        .diagram-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--accent);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .diagram-svg {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* CODE BOX */
+        .code-block-wrapper {
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .code-block-header {
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .code-label {
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .label-danger {
+            color: var(--danger-text);
+        }
+
+        .label-success {
+            color: var(--success-text);
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .copy-btn:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        pre {
+            margin: 0;
+            padding: 16px !important;
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 13px !important;
+            line-height: 1.6 !important;
+            overflow-x: auto;
+        }
+
+        /* COMPARISON TABLE */
+        .comparison-table-wrapper {
+            overflow-x: auto;
+            margin: 24px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        table.comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            text-align: left;
+        }
+
+        table.comparison-table th {
+            background: var(--bg-card);
+            padding: 14px 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        table.comparison-table td {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-muted);
+            vertical-align: top;
+        }
+
+        table.comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table.comparison-table tr:hover td {
+            background: var(--bg-card-hover);
+        }
+
+        .badge-check {
+            color: #34d399;
+            font-weight: 700;
+        }
+
+        .badge-cross {
+            color: #fb7185;
+            font-weight: 700;
+        }
+
+        /* CHECKLIST */
+        .checklist {
+            list-style: none;
+            margin: 16px 0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .check-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 24px 20px 60px;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .mobile-menu-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 200;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            display: none;
+        }
+
+        @media (max-width: 1024px) {
+            .mobile-menu-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MOBILE TOGGLE BUTTON -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">☰</button>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-badge">⚡ Senior Mentorship</div>
+            <div class="sidebar-title">Static in Unity</div>
+            <div class="sidebar-subtitle">Cẩm nang chuẩn từ Senior Developer</div>
+        </div>
+
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a href="#intro" class="nav-link active">
+                    <span>☕</span> Lời Mở Đầu Từ Senior
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#csharp-basics" class="nav-link">
+                    <span>1.</span> Bản Chất Của `static`
+                </a>
+                <ul class="nav-sub">
+                    <li><a href="#static-types" class="nav-link">1.1 Phân Loại 5 Thành Phần</a></li>
+                    <li><a href="#memory-model" class="nav-link">1.2 Cơ Chế Bộ Nhớ (Memory)</a></li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a href="#unity-internals" class="nav-link">
+                    <span>2.</span> Đặc Thù Cốt Lõi Trong Unity
+                </a>
+                <ul class="nav-sub">
+                    <li><a href="#scene-lifecycle" class="nav-link">2.1 Vòng Đời Scene vs Static</a></li>
+                    <li><a href="#memory-leak" class="nav-link">2.2 Cạm Bẫy Zombie Object</a></li>
+                    <li><a href="#domain-reload" class="nav-link">2.3 Enter Play Mode & Reset</a></li>
+                    <li><a href="#static-vs-singleton" class="nav-link">2.4 Static vs Singleton</a></li>
+                    <li><a href="#static-coroutines" class="nav-link">2.5 Coroutine & Async Context</a></li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a href="#pros-cons" class="nav-link">
+                    <span>3.</span> Ưu Điểm & Cạm Bẫy Kỹ Thuật
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#decision-matrix" class="nav-link">
+                    <span>4.</span> Khi Nào Nên & Tránh Sử Dụng?
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#code-samples" class="nav-link">
+                    <span>5.</span> Thực Chiến: Sai vs Đúng
+                </a>
+                <ul class="nav-sub">
+                    <li><a href="#code-event" class="nav-link">5.1 Static Event Leak</a></li>
+                    <li><a href="#code-domain" class="nav-link">5.2 Domain Reload Reset</a></li>
+                    <li><a href="#code-singleton" class="nav-link">5.3 Safe Generic Singleton</a></li>
+                    <li><a href="#code-runner" class="nav-link">5.4 Coroutine Runner vs UniTask</a></li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a href="#senior-checklist" class="nav-link">
+                    <span>6.</span> Bảng Kiểm Tra (Checklist)
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <button class="theme-toggle-btn" id="themeToggleBtn">
+                <span id="themeIcon">☀️</span> Chế độ Sáng/Tối
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- HERO BANNER -->
+        <header class="hero-banner" id="intro">
+            <div class="hero-meta">
+                <span class="meta-pill pill-senior">👨‍💻 Senior Developer Briefing</span>
+                <span class="meta-pill pill-time">⏱️ 15 phút đọc & thực hành</span>
+                <span class="meta-pill pill-level">🎯 Unity 2021, 2022, Unity 6+</span>
+            </div>
+            <h1 class="hero-title">Từ Khóa `static` Trong Lập Trình Game Unity</h1>
+            <p class="hero-desc">
+                Cẩm nang toàn diện giải mã bản chất của <code class="inline-code">static</code>: từ cơ chế bộ nhớ CLR, vòng đời trong Unity Engine đến những cạm bẫy rò rỉ bộ nhớ (Memory Leak) và Domain Reloading thường gặp trong môi trường làm việc thực chiến.
+            </p>
+        </header>
+
+        <!-- LỜI MỞ ĐẦU TỪ SENIOR -->
+        <div class="callout callout-senior">
+            <div class="callout-icon">💡</div>
+            <div class="callout-content">
+                <div class="callout-title">Góc Nhìn Từ Senior Dành Cho Junior / Mid Developers:</div>
+                <div class="callout-text">
+                    "Chào các bạn, trong quá trình review code và debug các dự án Unity, mình thấy một sai lầm cực kỳ phổ biến ở các bạn mới: <strong>lạm dụng <code class="inline-code">static</code> vì thấy nó quá tiện lợi</strong>. Bạn chỉ cần gõ <code class="inline-code">MyScript.Instance.DoSomething()</code> hoặc tạo một biến <code class="inline-code">public static int Score</code> là có thể gọi ở bất kỳ đâu mà không cần kéo thả Inspector hay dùng <code class="inline-code">GetComponent()</code>.<br><br>
+                    Nhưng cái giá phải trả thường rất đắt: <strong>game bị rò rỉ RAM (Memory Leak), lỗi MissingReferenceException ma quái khi chuyển Scene, bug tái hiện ngẫu nhiên khi tắt Domain Reload</strong>, và codebase trở thành một mớ dây tơ hồng không thể viết Unit Test. Tài liệu này sẽ giúp bạn hiểu sâu tận gốc rễ cơ chế để sử dụng <code class="inline-code">static</code> như một chuyên gia thực thụ."
+                </div>
+            </div>
+        </div>
+
+        <!-- PHẦN 1: BẢN CHẤT CỦA STATIC TRONG C# -->
+        <section class="doc-section" id="csharp-basics">
+            <div class="section-header">
+                <span class="section-tag">PHẦN 1</span>
+                <h2>Bản Chất Của `static` Trong C#</h2>
+            </div>
+            <p class="section-lead">
+                Trước khi tìm hiểu đặc thù trong Unity, bạn cần nắm rõ bản chất trong ngôn ngữ C#. Về cơ bản, từ khóa <code class="inline-code">static</code> dùng để khai báo một thành phần <strong>thuộc về chính Kiểu Dữ Liệu (Type/Class)</strong> thay vì thuộc về một <strong>đối tượng cụ thể (Object Instance)</strong>.
+            </p>
+
+            <h3 id="static-types">1.1 Phân Loại 5 Thành Phần Static Cần Nắm Rõ</h3>
+
+            <div class="grid-2">
+                <div class="info-card">
+                    <div class="card-header">
+                        <div class="card-icon icon-blue">📦</div>
+                        <div class="card-title">1. Static Class</div>
+                    </div>
+                    <div class="card-body">
+                        <ul>
+                            <li>Được CLR đánh dấu ngầm là <code class="inline-code">abstract</code> và <code class="inline-code">sealed</code>.</li>
+                            <li><strong>Không thể khởi tạo</strong> bằng từ khóa <code class="inline-code">new</code>.</li>
+                            <li>Không thể kế thừa hoặc cho class khác kế thừa.</li>
+                            <li>Chỉ chứa các thành viên static; thường dùng cho <strong>Math helpers</strong> hoặc <strong>Extension Methods</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-header">
+                        <div class="card-icon icon-purple">🔢</div>
+                        <div class="card-title">2. Static Field & Variable</div>
+                    </div>
+                    <div class="card-body">
+                        <ul>
+                            <li>Chỉ có <strong>duy nhất một ô nhớ</strong> chia sẻ chung cho toàn bộ ứng dụng.</li>
+                            <li>Dù bạn tạo 0 hay 1.000 instance của class, biến static vẫn chỉ tồn tại 1 bản sao duy nhất.</li>
+                            <li>Khởi tạo một lần trước khi được truy cập lần đầu.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-header">
+                        <div class="card-icon icon-green">⚙️</div>
+                        <div class="card-title">3. Static Method</div>
+                    </div>
+                    <div class="card-body">
+                        <ul>
+                            <li>Thực thi trực tiếp qua tên Class, không cần instance.</li>
+                            <li><strong>Không có con trỏ <code class="inline-code">this</code>:</strong> Không thể truy cập trực tiếp biến instance mà không truyền instance vào tham số.</li>
+                            <li>Không thể đánh dấu <code class="inline-code">virtual</code> hay <code class="inline-code">override</code>.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-header">
+                        <div class="card-icon icon-yellow">🔨</div>
+                        <div class="card-title">4. Static Constructor</div>
+                    </div>
+                    <div class="card-body">
+                        <ul>
+                            <li>Cú pháp: <code class="inline-code">static MyClass() { ... }</code> (không có public/private, không tham số).</li>
+                            <li>Được CLR gọi tự động đúng <strong>1 lần duy nhất</strong> khi type được nạp vào bộ nhớ.</li>
+                            <li>Nếu ném ra Exception, cả Type đó sẽ chết và ném <code class="inline-code">TypeInitializationException</code>!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <h3 id="memory-model">1.2 Cơ Chế Bộ Nhớ (Memory) & Vòng Đời CLR</h3>
+            <p>
+                Dữ liệu static nằm ở đâu? Có bị Garbage Collection (GC) thu hồi không? Hãy xem sơ đồ phân bổ bộ nhớ chi tiết bên dưới:
+            </p>
+
+            <!-- DIAGRAM 1: MEMORY LAYOUT SVG -->
+            <div class="diagram-container">
+                <div class="diagram-title">
+                    <span>📊 Sơ Đồ Cấp Phát Bộ Nhớ: AppDomain, LoaderHeap vs Managed Heap</span>
+                </div>
+                <svg class="diagram-svg" viewBox="0 0 850 360" width="850" height="360" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Background Boundary -->
+                    <rect x="10" y="10" width="830" height="340" rx="12" fill="#0f172a" stroke="#222f49" stroke-width="2"/>
+                    <text x="35" y="40" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="bold">Mono / CoreCLR Process (Unity Runtime)</text>
+
+                    <!-- AppDomain Box -->
+                    <rect x="30" y="60" width="790" height="270" rx="8" fill="#151f32" stroke="#334155" stroke-width="1.5"/>
+                    <text x="50" y="85" fill="#38bdf8" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700">Scripting AppDomain (Vùng thực thi Code C#)</text>
+
+                    <!-- Left: LoaderHeap / High Frequency Heap -->
+                    <rect x="50" y="105" width="340" height="205" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4 2"/>
+                    <text x="70" y="130" fill="#38bdf8" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700">LoaderHeap / High Frequency Heap</text>
+                    <text x="70" y="148" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-size="11">(Không bao giờ bị GC quét dọn)</text>
+
+                    <rect x="65" y="165" width="310" height="38" rx="6" fill="#0b0f19" stroke="#26324d"/>
+                    <text x="78" y="188" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="11">Type Descriptors & MethodTables</text>
+
+                    <rect x="65" y="210" width="310" height="42" rx="6" fill="#0b0f19" stroke="#38bdf8"/>
+                    <text x="78" y="228" fill="#38bdf8" font-family="'JetBrains Mono', monospace" font-size="11">Static Value-Types (int, float, bool)</text>
+                    <text x="78" y="244" fill="#64748b" font-family="'Plus Jakarta Sans', sans-serif" font-size="10">→ Lưu trực tiếp giá trị thực</text>
+
+                    <rect x="65" y="258" width="310" height="42" rx="6" fill="#0b0f19" stroke="#a855f7"/>
+                    <text x="78" y="276" fill="#c084fc" font-family="'JetBrains Mono', monospace" font-size="11">Static Object References (Pointers)</text>
+                    <text x="78" y="292" fill="#f43f5e" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="bold">⚡ LÀ GC ROOT: Giữ xích đối tượng!</text>
+
+                    <!-- Right: Managed Heap -->
+                    <rect x="430" y="105" width="370" height="205" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="1.5"/>
+                    <text x="450" y="130" fill="#34d399" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700">Managed Heap (Vùng nhớ GC Quản Lý)</text>
+                    <text x="450" y="148" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-size="11">(GC thu gom các đối tượng không còn ai trỏ tới)</text>
+
+                    <!-- Target Objects in Managed Heap -->
+                    <rect x="450" y="170" width="330" height="50" rx="6" fill="#0b0f19" stroke="#a855f7" stroke-width="1.5"/>
+                    <text x="465" y="192" fill="#e2e8f0" font-family="'JetBrains Mono', monospace" font-size="11">Object Instance Payload (List, Class, Array)</text>
+                    <text x="465" y="209" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-size="10">Được trỏ bởi static pointer → <strong fill="#f43f5e">KHÔNG THỂ THU HỒI!</strong></text>
+
+                    <rect x="450" y="240" width="330" height="55" rx="6" fill="#0b0f19" stroke="#334155"/>
+                    <text x="465" y="262" fill="#64748b" font-family="'JetBrains Mono', monospace" font-size="11">Normal Instance Objects</text>
+                    <text x="465" y="280" fill="#10b981" font-family="'Plus Jakarta Sans', sans-serif" font-size="10">Không có ai trỏ → Sẽ được GC giải phóng an toàn</text>
+
+                    <!-- Arrow from Pointer to Managed Heap -->
+                    <path d="M 375 279 C 400 279, 410 195, 445 195" fill="none" stroke="#a855f7" stroke-width="2.5" marker-end="url(#arrow-purple)"/>
+
+                    <!-- Markers -->
+                    <defs>
+                        <marker id="arrow-purple" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                            <path d="M 0 0 L 8 4 L 0 8 z" fill="#a855f7" />
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <div class="callout callout-info">
+                <div class="callout-icon">📌</div>
+                <div class="callout-content">
+                    <div class="callout-title">Quy Tắc Vàng Về Bộ Nhớ (Memory Rule):</div>
+                    <div class="callout-text">
+                        1. Biến static kiểu nguyên thủy (Value Type) nằm trực tiếp ở LoaderHeap.<br>
+                        2. Biến static kiểu tham chiếu (Reference Type) thực chất chỉ lưu <strong>con trỏ (Pointer)</strong> ở LoaderHeap. Còn bản thân dữ liệu nặng (string, array, instance) vẫn nằm trên Managed Heap.<br>
+                        3. Vì biến static là một <strong>GC ROOT</strong>, toàn bộ cây đối tượng nào bị nó trỏ tới sẽ <strong>không bao giờ bị Garbage Collector dọn dẹp</strong> cho đến khi AppDomain bị hủy hoặc con trỏ được gán bằng <code class="inline-code">null</code>!
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PHẦN 2: ĐẶC THÙ TRONG UNITY -->
+        <section class="doc-section" id="unity-internals">
+            <div class="section-header">
+                <span class="section-tag">PHẦN 2</span>
+                <h2>Đặc Thù Cốt Lõi Của `static` Trong Unity Game Engine</h2>
+            </div>
+            <p class="section-lead">
+                Đây là phần quan trọng nhất! Trong ứng dụng C# Console thông thường, ứng dụng bật lên rồi tắt đi. Nhưng trong Unity Editor và Game Runtime, có 5 cơ chế đặc biệt chi phối biến static:
+            </p>
+
+            <h3 id="scene-lifecycle">2.1 Vòng Đời Scene vs Vòng Đời Biến Static</h3>
+            <p>
+                Rất nhiều bạn lầm tưởng: <em>"Khi mình chuyển Scene bằng <code class="inline-code">SceneManager.LoadScene()</code>, toàn bộ biến trong game sẽ được reset lại sạch sẽ."</em>
+            </p>
+            <p>
+                <strong>Thực tế kỹ thuật:</strong> Unity chỉ dọn dẹp các GameObject và Component nằm trên Hierarchy của Scene cũ. <strong>Bộ nhớ C# AppDomain không hề bị dỡ bỏ khi đổi Scene!</strong> Tất cả các biến static vẫn sống sót nguyên vẹn mà không cần gọi lệnh <code class="inline-code">DontDestroyOnLoad()</code>.
+            </p>
+
+            <!-- DIAGRAM 2: SCENE VS STATIC LIFECYCLE -->
+            <div class="diagram-container">
+                <div class="diagram-title">
+                    <span>🔄 Vòng Đời: Scene Unload Không Hề Chạm Được Vào Biến Static!</span>
+                </div>
+                <svg class="diagram-svg" viewBox="0 0 850 240" width="850" height="240" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="10" width="830" height="220" rx="10" fill="#0f172a" stroke="#222f49" stroke-width="1.5"/>
+
+                    <!-- Timeline Line -->
+                    <line x1="60" y1="120" x2="790" y2="120" stroke="#334155" stroke-width="2" stroke-dasharray="6 4"/>
+
+                    <!-- Scene 1 Box -->
+                    <rect x="70" y="35" width="200" height="70" rx="8" fill="#1e293b" stroke="#38bdf8"/>
+                    <text x="85" y="62" fill="#38bdf8" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700">Scene 1: Gameplay</text>
+                    <text x="85" y="85" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="11">Player, Monsters, UI</text>
+
+                    <!-- Scene Unload Event -->
+                    <circle cx="360" cy="120" r="28" fill="#f43f5e" opacity="0.2"/>
+                    <circle cx="360" cy="120" r="18" fill="#f43f5e"/>
+                    <text x="360" y="125" fill="#fff" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="bold">X</text>
+                    <text x="360" y="170" fill="#fb7185" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="bold">SceneManager.LoadScene()</text>
+                    <text x="360" y="188" fill="#94a3b8" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="10">Hierarchy cũ bị Destroy sạch</text>
+
+                    <!-- Scene 2 Box -->
+                    <rect x="450" y="35" width="200" height="70" rx="8" fill="#1e293b" stroke="#10b981"/>
+                    <text x="465" y="62" fill="#34d399" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700">Scene 2: Game Over</text>
+                    <text x="465" y="85" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="11">ResultsUI, ReplayBtn</text>
+
+                    <!-- Static Line Alive Across Both -->
+                    <rect x="70" y="150" width="700" height="45" rx="6" fill="#152438" stroke="#38bdf8" stroke-width="1.5"/>
+                    <text x="85" y="177" fill="#38bdf8" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="bold">⚡ static int Score = 1500; static List&lt;Enemy&gt; AllEnemies;</text>
+                    <text x="600" y="177" fill="#34d399" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="bold">→ VẪN SỐNG NGUYÊN VẸN!</text>
+                </svg>
+            </div>
+
+            <h3 id="memory-leak">2.2 Cạm Bẫy Zombie Object & Rò Rỉ Bộ Nhớ (Memory Leak)</h3>
+            <p>
+                Đây là nguồn cơn của lỗi kinh điển mà mọi lập trình viên Unity từng gặp ít nhất một lần:
+            </p>
+            <div class="callout callout-warning">
+                <div class="callout-icon">🚨</div>
+                <div class="callout-content">
+                    <div class="callout-title">MissingReferenceException: The object of type 'Enemy' has been destroyed but you are still trying to access it!</div>
+                    <div class="callout-text">
+                        Tại sao đối tượng đã bị Destroy rồi mà code vẫn gọi được vào nó để sinh ra lỗi này? Hãy hiểu cơ chế <strong>Kiến Trúc 2 Tầng (Two-Tier Architecture)</strong> của Unity:
+                    </div>
+                </div>
+            </div>
+
+            <!-- DIAGRAM 3: TWO TIER ZOMBIE OBJECT -->
+            <div class="diagram-container">
+                <div class="diagram-title">
+                    <span>💀 Giải Phẫu Hiện Tượng Zombie Object: C++ Native Bị Hủy vs C# Wrapper Bị Static Níu Giữ</span>
+                </div>
+                <svg class="diagram-svg" viewBox="0 0 850 320" width="850" height="320" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="10" width="830" height="300" rx="10" fill="#0f172a" stroke="#222f49" stroke-width="1.5"/>
+
+                    <!-- Step 1: Destroy called -->
+                    <rect x="30" y="30" width="370" height="120" rx="8" fill="#1e293b" stroke="#f43f5e" stroke-width="1.5"/>
+                    <text x="45" y="55" fill="#fb7185" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700">1. C++ Native Engine (Tầng Native)</text>
+                    <text x="45" y="78" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="11">Transform, Mesh, Physics Rigidbody...</text>
+                    <rect x="45" y="95" width="340" height="40" rx="4" fill="#2d121c" stroke="#f43f5e"/>
+                    <text x="60" y="120" fill="#f43f5e" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="bold">Destroy() → BỊ HỦY HOÀN TOÀN KHỎI RAM NATIVE</text>
+
+                    <!-- Step 2: C# Managed Wrapper -->
+                    <rect x="440" y="30" width="380" height="120" rx="8" fill="#1e293b" stroke="#fbbf24" stroke-width="1.5"/>
+                    <text x="455" y="55" fill="#fbbf24" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700">2. C# Managed Wrapper (Tầng C#)</text>
+                    <text x="455" y="78" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="11">Con trỏ nội bộ m_CachedPtr trỏ xuống C++</text>
+                    <rect x="455" y="95" width="350" height="40" rx="4" fill="#2c2214" stroke="#fbbf24"/>
+                    <text x="470" y="120" fill="#fbbf24" font-family="'JetBrains Mono', monospace" font-size="11">m_CachedPtr = IntPtr.Zero (Đã null ở C++)</text>
+
+                    <!-- The Culprit: Static Event holding reference -->
+                    <rect x="230" y="195" width="390" height="95" rx="8" fill="#1c192f" stroke="#a855f7" stroke-width="2"/>
+                    <text x="250" y="222" fill="#c084fc" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="bold">public static event Action OnPlayerDie;</text>
+                    <text x="250" y="244" fill="#e2e8f0" font-family="'Plus Jakarta Sans', sans-serif" font-size="11.5">Vẫn giữ tham chiếu đến hàm OnPlayerDie của Enemy!</text>
+                    <text x="250" y="265" fill="#f43f5e" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="bold">→ C# Wrapper biến thành "ZOMBIE", KHÔNG THỂ BỊ GC THU HỒI!</text>
+
+                    <!-- Link lines -->
+                    <path d="M 425 195 L 490 155" stroke="#f43f5e" stroke-width="2" stroke-dasharray="4 2"/>
+                    <path d="M 440 90 L 405 90" stroke="#f43f5e" stroke-width="2" stroke-dasharray="4 2"/>
+                </svg>
+            </div>
+
+            <div class="callout callout-tip">
+                <div class="callout-icon">💡</div>
+                <div class="callout-content">
+                    <div class="callout-title">Bí mật phép so sánh `myObj == null` trong Unity:</div>
+                    <div class="callout-text">
+                        Unity cố tình override toán tử <code class="inline-code">==</code>. Khi bạn viết <code class="inline-code">if (enemy == null)</code>, nó trả về <strong>true</strong> vì native object đã bị hủy! Nhưng nếu bạn dùng <code class="inline-code">System.Object.ReferenceEquals(enemy, null)</code>, nó trả về <strong>false</strong>! Tức là vỏ bọc C# cùng toàn bộ mảng dữ liệu, biến bên trong script đó vẫn đang ngốn RAM của bạn từng giây!
+                    </div>
+                </div>
+            </div>
+
+            <h3 id="domain-reload">2.3 Enter Play Mode Options & Cạm Bẫy Tắt Domain Reload</h3>
+            <p>
+                Để lập trình viên không phải chờ 5-15 giây mỗi lần nhấn nút Play, Unity cung cấp tùy chọn:
+                <br><code class="inline-code">Project Settings &gt; Editor &gt; Enter Play Mode Options &gt; Tắt Reload Domain</code>.
+            </p>
+
+            <!-- DIAGRAM 4: DOMAIN RELOAD COMPARISON -->
+            <div class="diagram-container">
+                <div class="diagram-title">
+                    <span>⚡ So Sánh Quy Trình Khi Nhấn Nút PLAY Trong Unity Editor</span>
+                </div>
+                <svg class="diagram-svg" viewBox="0 0 850 220" width="850" height="220" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="10" width="830" height="200" rx="10" fill="#0f172a" stroke="#222f49" stroke-width="1.5"/>
+
+                    <!-- Top Row: Default (Reload Domain ON) -->
+                    <rect x="30" y="30" width="170" height="65" rx="6" fill="#1e293b" stroke="#334155"/>
+                    <text x="45" y="55" fill="#e2e8f0" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="bold">Mặc định (Domain Reload ON)</text>
+                    <text x="45" y="75" fill="#f43f5e" font-family="'JetBrains Mono', monospace" font-size="11">⏱️ Chờ 5 - 15 giây</text>
+
+                    <path d="M 205 62 L 255 62" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+                    <rect x="260" y="30" width="540" height="65" rx="6" fill="#0c2333" stroke="#38bdf8"/>
+                    <text x="275" y="55" fill="#38bdf8" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="bold">Hủy AppDomain cũ → Tạo mới AppDomain</text>
+                    <text x="275" y="75" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-size="11">Mọi biến static tự động reset về giá trị mặc định (0, null). An toàn nhưng RẤT CHẬM.</text>
+
+                    <!-- Bottom Row: Fast Play Mode (Reload Domain OFF) -->
+                    <rect x="30" y="115" width="170" height="75" rx="6" fill="#1e293b" stroke="#10b981"/>
+                    <text x="45" y="138" fill="#34d399" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="bold">Tắt Domain Reload</text>
+                    <text x="45" y="158" fill="#34d399" font-family="'JetBrains Mono', monospace" font-size="11">⚡ Vào Play Mode tức thì!</text>
+                    <text x="45" y="175" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-size="10">(Enter Play Mode Options)</text>
+
+                    <path d="M 205 152 L 255 152" stroke="#f43f5e" stroke-width="2" marker-end="url(#arrow-red)"/>
+
+                    <rect x="260" y="115" width="540" height="75" rx="6" fill="#2d121c" stroke="#f43f5e"/>
+                    <text x="275" y="138" fill="#fb7185" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="bold">CẢNH BÁO NGUY HIỂM: AppDomain Giữ Nguyên!</text>
+                    <text x="275" y="158" fill="#cbd5e1" font-family="'Plus Jakarta Sans', sans-serif" font-size="11">Biến static KHÔNG được reset! Điểm Score vẫn giữ từ lần chơi trước! Static event bị đăng ký nhân đôi!</text>
+                    <text x="275" y="175" fill="#38bdf8" font-family="'JetBrains Mono', monospace" font-size="10.5">👉 Giải pháp: Phải dùng [RuntimeInitializeOnLoadMethod] để tự tay reset!</text>
+
+                    <defs>
+                        <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                            <path d="M 0 0 L 8 4 L 0 8 z" fill="#38bdf8" />
+                        </marker>
+                        <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                            <path d="M 0 0 L 8 4 L 0 8 z" fill="#f43f5e" />
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <h3 id="static-vs-singleton">2.4 So Sánh Static Class vs Singleton Pattern</h3>
+            <p>
+                Rất nhiều bạn hỏi mình: <em>"Tại sao không dùng luôn Static Class cho tiện, mà phải tạo Singleton kế thừa MonoBehaviour làm gì?"</em> Bảng dưới đây sẽ giải đáp cặn kẽ:
+            </p>
+
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Tiêu Chí So Sánh</th>
+                            <th>Pure Static Class</th>
+                            <th>MonoBehaviour Singleton</th>
+                            <th>ScriptableObject Singleton</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Vòng đời Unity (Awake, Update)</strong></td>
+                            <td><span class="badge-cross">❌ Không có</span></td>
+                            <td><span class="badge-check">✅ Có đầy đủ</span></td>
+                            <td><span class="badge-cross">❌ Chỉ có OnEnable/Disable</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kéo thả Inspector (Audio, Prefab)</strong></td>
+                            <td><span class="badge-cross">❌ Không thể</span></td>
+                            <td><span class="badge-check">✅ Kéo thả trực quan</span></td>
+                            <td><span class="badge-check">✅ Kéo thả trên Asset cực tốt</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sống sót qua Scene</strong></td>
+                            <td><span class="badge-check">✅ Tự động sống</span></td>
+                            <td>⚠️ Cần <code class="inline-code">DontDestroyOnLoad</code></td>
+                            <td><span class="badge-check">✅ Độc lập với Scene</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Chạy Coroutine</strong></td>
+                            <td><span class="badge-cross">❌ Không thể trực tiếp</span></td>
+                            <td><span class="badge-check">✅ Gọi StartCoroutine()</span></td>
+                            <td><span class="badge-cross">❌ Cần Runner trung gian</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Rủi ro Ghost Object khi tắt Game</strong></td>
+                            <td><span class="badge-check">✅ Không bị</span></td>
+                            <td>⚠️ Rất cao nếu không xử lý <code class="inline-code">isQuitting</code></td>
+                            <td><span class="badge-check">✅ Không bị</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ứng dụng tốt nhất</strong></td>
+                            <td>Toán học, Utilities, Extension Methods</td>
+                            <td>AudioManager, GameManager, UIManager</td>
+                            <td>Game Settings, Audio Database, Event Channels</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 id="static-coroutines">2.5 Coroutine & Async/Await Trong Ngữ Cảnh Static</h3>
+            <p>
+                <strong>Câu hỏi:</strong> Trong một hàm static, ta có thể gọi <code class="inline-code">StartCoroutine()</code> không?
+            </p>
+            <p>
+                <strong>Trả lời:</strong> <strong>KHÔNG THỂ TRỰC TIẾP!</strong> Vì <code class="inline-code">StartCoroutine</code> là phương thức thực thể (instance method) của lớp <code class="inline-code">MonoBehaviour</code>. Static method không có con trỏ <code class="inline-code">this</code>.
+            </p>
+            <p>
+                <strong>2 Hướng Giải Quyết Chuẩn Công Nghiệp:</strong>
+            </p>
+            <ul>
+                <li><strong>Cách 1 (Truyền thống):</strong> Dùng pattern <code class="inline-code">CoroutineRunner</code> — một GameObject ẩn chạy ngầm đóng vai trò "con thoi" chạy Coroutine giúp các static method.</li>
+                <li><strong>Cách 2 (Hiện đại & Khuyên dùng):</strong> Sử dụng <strong>C# Async/Await hoặc thư viện UniTask</strong>. UniTask không cần MonoBehaviour instance, cấp phát 0 bytes bộ nhớ (Zero Allocation) và chạy mượt mà ngay trong static method!</li>
+            </ul>
+        </section>
+
+        <!-- PHẦN 3: ƯU & NHƯỢC ĐIỂM -->
+        <section class="doc-section" id="pros-cons">
+            <div class="section-header">
+                <span class="section-tag">PHẦN 3</span>
+                <h2>Ưu Điểm & Nhược Điểm Toàn Diện</h2>
+            </div>
+
+            <div class="grid-2">
+                <!-- PROS -->
+                <div class="info-card" style="border-top: 4px solid var(--border-success);">
+                    <div class="card-header">
+                        <div class="card-icon icon-green">✅</div>
+                        <div class="card-title" style="color: var(--success-text);">Ưu Điểm Nổi Bật</div>
+                    </div>
+                    <div class="card-body">
+                        <ul style="padding-left: 18px; margin-top: 8px;">
+                            <li style="margin-bottom: 10px;">
+                                <strong>Truy cập toàn cục cực nhanh:</strong> Gọi trực tiếp <code class="inline-code">Mathf.Clamp()</code> từ bất kỳ file nào mà không cần kéo thả Inspector hay dùng <code class="inline-code">GetComponent()</code>.
+                            </li>
+                            <li style="margin-bottom: 10px;">
+                                <strong>Hiệu năng cực cao (Zero Lookup):</strong> Biên dịch thành lệnh IL <code class="inline-code">call</code> thay vì <code class="inline-code">callvirt</code>, không tốn chi phí kiểm tra null con trỏ hay tra cứu bảng ảo V-Table.
+                            </li>
+                            <li style="margin-bottom: 10px;">
+                                <strong>Hoàn hảo cho hàm thuần túy (Pure Functions):</strong> Các hàm nhận input và trả về output mà không làm thay đổi trạng thái thế giới (Stateless).
+                            </li>
+                            <li style="margin-bottom: 10px;">
+                                <strong>Tiết kiệm bộ nhớ cho hằng số:</strong> Chia sẻ chung một bản sao hằng số cấu hình (<code class="inline-code">const</code>, <code class="inline-code">static readonly</code>).
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- CONS -->
+                <div class="info-card" style="border-top: 4px solid var(--border-danger);">
+                    <div class="card-header">
+                        <div class="card-icon icon-red">⚠️</div>
+                        <div class="card-title" style="color: var(--danger-text);">Cạm Bẫy Kỹ Thuật (Nhược Điểm)</div>
+                    </div>
+                    <div class="card-body">
+                        <ul style="padding-left: 18px; margin-top: 8px;">
+                            <li style="margin-bottom: 10px;">
+                                <strong>Ràng buộc chặt chẽ (Tight Coupling):</strong> Khi Class A gọi cứng Class B qua static, bạn không thể thay thế hoặc tái sử dụng Class A độc lập được nữa.
+                            </li>
+                            <li style="margin-bottom: 10px;">
+                                <strong>Cực kỳ khó viết Unit Test (Untestable):</strong> Bạn không thể dễ dàng Mock hay Stub một hàm static bằng các thư viện testing thông thường (NUnit, Moq).
+                            </li>
+                            <li style="margin-bottom: 10px;">
+                                <strong>Hiệu ứng cánh bướm (Global State Mutation):</strong> Bất kỳ ai ở góc nào của dự án cũng có thể sửa giá trị của biến static. Khi xảy ra bug, việc dò tìm ai đã thay đổi nó là một cơn ác mộng.
+                            </li>
+                            <li style="margin-bottom: 10px;">
+                                <strong>Rò rỉ bộ nhớ âm thầm:</strong> Chỉ cần quên unsubscribe 1 event static là cả Scene cũ vẫn dính chặt trong RAM điện thoại!
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PHẦN 4: MA TRẬN QUYẾT ĐỊNH -->
+        <section class="doc-section" id="decision-matrix">
+            <div class="section-header">
+                <span class="section-tag">PHẦN 4</span>
+                <h2>Ma Trận Quyết Định: Khi Nào Nên & Tránh Sử Dụng?</h2>
+            </div>
+            <p class="section-lead">
+                Để tránh việc "tiện tay đâu viết static đó", đây là sơ đồ tư duy (Flowchart) chuẩn để bạn tự chất vấn bản thân trước khi gõ từ khóa <code class="inline-code">static</code>:
+            </p>
+
+            <!-- DIAGRAM 5: DECISION TREE SVG -->
+            <div class="diagram-container">
+                <div class="diagram-title">
+                    <span>🧭 Sơ Đồ Cây Quyết Định (Decision Flowchart) Dành Cho Developer</span>
+                </div>
+                <svg class="diagram-svg" viewBox="0 0 850 420" width="850" height="420" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="10" width="830" height="400" rx="10" fill="#0f172a" stroke="#222f49" stroke-width="1.5"/>
+
+                    <!-- Start Node -->
+                    <rect x="290" y="30" width="270" height="45" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+                    <text x="425" y="58" fill="#38bdf8" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700">Bạn muốn viết một chức năng mới?</text>
+
+                    <!-- Down Arrow -->
+                    <line x1="425" y1="75" x2="425" y2="105" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-gray)"/>
+
+                    <!-- Decision Node 1 -->
+                    <polygon points="425,105 565,150 425,195 285,150" fill="#152438" stroke="#a855f7" stroke-width="1.5"/>
+                    <text x="425" y="146" fill="#e2e8f0" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11.5" font-weight="600">Có cần lưu trữ State</text>
+                    <text x="425" y="162" fill="#c084fc" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11.5" font-weight="600">(Biến dữ liệu đổi theo thời gian)?</text>
+
+                    <!-- Branch Right: NO State (Stateless) -->
+                    <line x1="565" y1="150" x2="680" y2="150" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-green)"/>
+                    <text x="615" y="142" fill="#34d399" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="bold">KHÔNG</text>
+
+                    <rect x="680" y="120" width="140" height="60" rx="8" fill="#0d2b24" stroke="#10b981" stroke-width="2"/>
+                    <text x="750" y="145" fill="#34d399" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="bold">✅ DÙNG STATIC</text>
+                    <text x="750" y="165" fill="#94a3b8" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10">Math, Ext, Helpers</text>
+
+                    <!-- Branch Down: YES State -->
+                    <line x1="425" y1="195" x2="425" y2="235" stroke="#f43f5e" stroke-width="2" marker-end="url(#arrow-red)"/>
+                    <text x="435" y="215" fill="#fb7185" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="bold">CÓ</text>
+
+                    <!-- Decision Node 2 -->
+                    <polygon points="425,235 565,280 425,325 285,280" fill="#152438" stroke="#fbbf24" stroke-width="1.5"/>
+                    <text x="425" y="275" fill="#e2e8f0" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11.5" font-weight="600">Dữ liệu có gắn chặt với</text>
+                    <text x="425" y="291" fill="#fbbf24" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11.5" font-weight="600">Scene / GameObject cụ thể?</text>
+
+                    <!-- Branch Left: YES GameObject -->
+                    <line x1="285" y1="280" x2="160" y2="280" stroke="#f43f5e" stroke-width="2" marker-end="url(#arrow-red)"/>
+                    <text x="215" y="272" fill="#fb7185" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="bold">CÓ</text>
+
+                    <rect x="20" y="250" width="140" height="60" rx="8" fill="#2d121c" stroke="#f43f5e" stroke-width="2"/>
+                    <text x="90" y="275" fill="#f43f5e" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="bold">❌ KHÔNG DÙNG</text>
+                    <text x="90" y="295" fill="#94a3b8" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10">Dùng Component thường</text>
+
+                    <!-- Branch Down: Global System State -->
+                    <line x1="425" y1="325" x2="425" y2="355" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow-blue)"/>
+                    <text x="435" y="342" fill="#38bdf8" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="bold">KHÔNG</text>
+
+                    <rect x="280" y="355" width="290" height="45" rx="8" fill="#0c2333" stroke="#38bdf8" stroke-width="1.5"/>
+                    <text x="425" y="382" fill="#38bdf8" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="bold">Cân nhắc: ScriptableObject hoặc Safe Singleton</text>
+
+                    <defs>
+                        <marker id="arrow-gray" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                            <path d="M 0 0 L 8 4 L 0 8 z" fill="#94a3b8" />
+                        </marker>
+                        <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                            <path d="M 0 0 L 8 4 L 0 8 z" fill="#10b981" />
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <h4 style="color: var(--success-text);">🎯 4 Trường Hợp NÊN DÙNG (Best Practices)</h4>
+                    <ul class="checklist">
+                        <li class="checklist-item">
+                            <span class="check-icon">✅</span>
+                            <div><strong>Pure Utility Functions & Math:</strong> Các thư viện tính toán hình học, xử lý chuỗi, định dạng tiền tệ (<code class="inline-code">MathUtility</code>, <code class="inline-code">StringUtils</code>).</div>
+                        </li>
+                        <li class="checklist-item">
+                            <span class="check-icon">✅</span>
+                            <div><strong>Extension Methods:</strong> Mở rộng phương thức cho Transform, Vector3, RectTransform tiện dụng.</div>
+                        </li>
+                        <li class="checklist-item">
+                            <span class="check-icon">✅</span>
+                            <div><strong>Constants & Hash Cố Định:</strong> Lưu LayerMask, Animation Hash (<code class="inline-code">Animator.StringToHash</code>), Audio Key string.</div>
+                        </li>
+                        <li class="checklist-item">
+                            <span class="check-icon">✅</span>
+                            <div><strong>Global Event Bus (Có kiểm soát):</strong> Truyền tín hiệu giữa các hệ thống độc lập nhưng <strong>bắt buộc Unsubscribe trong OnDisable</strong>.</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 style="color: var(--danger-text);">🚫 4 Trường Hợp TUYỆT ĐỐI TRÁNH (Anti-Patterns)</h4>
+                    <ul class="checklist">
+                        <li class="checklist-item" style="border-color: rgba(244, 63, 94, 0.3);">
+                            <span class="check-icon">❌</span>
+                            <div><strong>Lưu trữ State Gameplay biến động:</strong> Đặt các biến như <code class="inline-code">public static int PlayerHP;</code> hoặc <code class="inline-code">public static int Coin;</code> rải rác.</div>
+                        </li>
+                        <li class="checklist-item" style="border-color: rgba(244, 63, 94, 0.3);">
+                            <span class="check-icon">❌</span>
+                            <div><strong>Giữ tham chiếu GameObject / UI:</strong> <code class="inline-code">public static HealthBarUI MainHUD;</code> → Khi đổi scene, biến này biến thành Zombie gây crash game!</div>
+                        </li>
+                        <li class="checklist-item" style="border-color: rgba(244, 63, 94, 0.3);">
+                            <span class="check-icon">❌</span>
+                            <div><strong>Static Event không Unsubscribe:</strong> Đăng ký trong Start mà không hủy trong OnDisable.</div>
+                        </li>
+                        <li class="checklist-item" style="border-color: rgba(244, 63, 94, 0.3);">
+                            <span class="check-icon">❌</span>
+                            <div><strong>Biến mọi class thành Singleton/Static Manager:</strong> Dẫn tới code mạng nhện (Spaghetti), không thể tái sử dụng.</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- PHẦN 5: THỰC CHIẾN SO SÁNH SAI VS ĐÚNG -->
+        <section class="doc-section" id="code-samples">
+            <div class="section-header">
+                <span class="section-tag">PHẦN 5</span>
+                <h2>Thực Chiến: So Sánh Code Sai (❌) vs Code Đúng (✅)</h2>
+            </div>
+            <p class="section-lead">
+                Dưới đây là 4 tình huống thực tế thường xuyên bắt gặp trong các dự án game Unity production. Hãy đối chiếu cách viết sai và cách khắc phục đạt chuẩn Senior:
+            </p>
+
+            <!-- TÌNH HUỐNG 1 -->
+            <h3 id="code-event">5.1 Static Event & Memory Leak: Vấn Đề Và Cách Xử Lý</h3>
+            <p>
+                Đây là nguyên nhân gây tràn RAM phổ biến nhất trên thiết bị di động:
+            </p>
+
+            <div class="code-block-wrapper">
+                <div class="code-block-header">
+                    <span class="code-label label-danger">❌ ANTI-PATTERN: Rò rỉ 10MB RAM mỗi lần chuyển Scene!</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code class="language-csharp">// File: CombatEvents.cs
+using System;
+
+public static class CombatEvents
+{
+    // Static event tồn tại vĩnh viễn ở AppDomain
+    public static event Action<int> OnPlayerDamaged;
+
+    public static void TriggerPlayerDamaged(int damage)
+    {
+        OnPlayerDamaged?.Invoke(damage);
+    }
+}
+
+// File: HealthHUD.cs
+using UnityEngine;
+
+public class HealthHUD : MonoBehaviour
+{
+    // Giả sử UI này tải ảnh avatar hoặc mảng dữ liệu nặng
+    private byte[] heavyTextureBuffer = new byte[1024 * 1024 * 10]; // 10 Megabytes
+
+    private void Start()
+    {
+        // ⚠️ ĐĂNG KÝ EVENT NHƯNG KHÔNG BAO GIỜ HỦY ĐĂNG KÝ!
+        CombatEvents.OnPlayerDamaged += UpdateHUD;
+    }
+
+    private void UpdateHUD(int damage)
+    {
+        Debug.Log($"Update HUD: {damage}");
+    }
+
+    // Khi bạn đổi Scene: GameObject chứa script này bị Destroy.
+    // NHƯNG delegate trong CombatEvents.OnPlayerDamaged VẪN GIỮ CHẶT THAM CHIẾU tới instance này!
+    // HỆ QUẢ: 10MB bộ nhớ cùng toàn bộ object này BỊ RÒ RỈ VĨNH VIỄN TRONG RAM!
+}</code></pre>
+            </div>
+
+            <div class="code-block-wrapper">
+                <div class="code-block-header">
+                    <span class="code-label label-success">✅ BEST PRACTICE: Đăng ký ở OnEnable - Hủy ở OnDisable + Reset Subsystem</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code class="language-csharp">// File: CombatEvents.cs
+using System;
+using UnityEngine;
+
+public static class CombatEvents
+{
+    public static event Action<int> OnPlayerDamaged;
+
+    public static void TriggerPlayerDamaged(int damage)
+    {
+        OnPlayerDamaged?.Invoke(damage);
+    }
+
+    // Tự động dọn dẹp khi tắt Domain Reload trong Unity Editor
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetEvents()
+    {
+        OnPlayerDamaged = null; // Xóa sạch mọi delegate còn sót lại
+    }
+}
+
+// File: HealthHUD.cs
+using UnityEngine;
+
+public class HealthHUD : MonoBehaviour
+{
+    private byte[] heavyTextureBuffer = new byte[1024 * 1024 * 10];
+
+    // ✅ NGUYÊN TẮC VÀNG: Đăng ký ở OnEnable
+    private void OnEnable()
+    {
+        CombatEvents.OnPlayerDamaged += UpdateHUD;
+    }
+
+    // ✅ BẮT BUỘC HỦY Ở OnDisable: Ngắt kết nối delegate trước khi GameObject bị ẩn hoặc destroy!
+    private void OnDisable()
+    {
+        CombatEvents.OnPlayerDamaged -= UpdateHUD;
+    }
+
+    private void UpdateHUD(int damage)
+    {
+        Debug.Log($"Update HUD: {damage}");
+    }
+}</code></pre>
+            </div>
+
+            <!-- TÌNH HUỐNG 2 -->
+            <h3 id="code-domain">5.2 Reset Static Data Cho Enter Play Mode (Domain Reload Disabled)</h3>
+            <p>
+                Khi team của bạn bật tính năng Fast Enter Play Mode để tăng tốc làm việc, các biến static sẽ <strong>không tự reset</strong> giữa các lần bấm nút Play:
+            </p>
+
+            <div class="code-block-wrapper">
+                <div class="code-block-header">
+                    <span class="code-label label-danger">❌ ANTI-PATTERN: Bị bug giữ nguyên điểm số từ trận trước</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code class="language-csharp">public static class ScoreManager
+{
+    public static int CurrentScore = 0; // Khi tắt Domain Reload, biến này KHÔNG reset về 0 khi Play lại!
+
+    public static void AddScore(int amount)
+    {
+        CurrentScore += amount;
+    }
+}
+
+public class GameFlow : MonoBehaviour
+{
+    private void Start()
+    {
+        // Lần Play 1: Add 50 điểm -> CurrentScore = 50.
+        // Tắt Play -> Bấm Play lần 2: Start() chạy nhưng CurrentScore khởi đầu ĐÃ LÀ 50!
+        Debug.Log($"Bắt đầu game với điểm: {ScoreManager.CurrentScore}");
+    }
+}</code></pre>
+            </div>
+
+            <div class="code-block-wrapper">
+                <div class="code-block-header">
+                    <span class="code-label label-success">✅ BEST PRACTICE: Dùng [RuntimeInitializeOnLoadMethod]</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code class="language-csharp">using UnityEngine;
+
+public static class ScoreManager
+{
+    public static int CurrentScore { get; private set; }
+
+    public static void AddScore(int amount)
+    {
+        CurrentScore += amount;
+    }
+
+    // SubsystemRegistration: Được Unity kích hoạt ở giai đoạn sớm nhất, TRƯỚC CẢ AWAKE của Scene đầu tiên!
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void InitializeDomain()
+    {
+        CurrentScore = 0;
+        Debug.Log("[ScoreManager] Reset biến static an toàn khi vào Play Mode!");
+    }
+}</code></pre>
+            </div>
+
+            <!-- TÌNH HUỐNG 3 -->
+            <h3 id="code-singleton">5.3 Safe Generic Singleton (Ngăn Ngừa Ghost Object Khi Tắt Game)</h3>
+            <p>
+                Một trong những lỗi Singleton phổ biến nhất là khi người chơi tắt game (hoặc bạn bấm dừng Play trong Editor), các object khác trong hàm <code class="inline-code">OnDestroy()</code> gọi đến Singleton, vô tình <strong>tạo mới một Ghost Singleton vào Scene</strong> ngay giữa lúc tắt máy:
+            </p>
+
+            <div class="code-block-wrapper">
+                <div class="code-block-header">
+                    <span class="code-label label-success">✅ BEST PRACTICE: Safe Generic Singleton Pattern Chuẩn Production</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code class="language-csharp">using UnityEngine;
+
+public abstract class SafeSingleton<T> : MonoBehaviour where T : MonoBehaviour
+{
+    private static T _instance;
+    private static readonly object _lock = new object();
+    private static bool _isApplicationQuitting = false;
+
+    public static T Instance
+    {
+        get
+        {
+            // 🛑 BẢO VỆ CHỐNG GHOST OBJECT: Nếu game đang tắt, tuyệt đối không tạo thêm object mới!
+            if (_isApplicationQuitting)
+            {
+                Debug.LogWarning($"[SafeSingleton] Ứng dụng đang tắt, không tạo thêm Instance của {typeof(T)}.");
+                return null;
+            }
+
+            lock (_lock)
+            {
+                if (_instance == null)
+                {
+                    _instance = FindAnyObjectByType<T>();
+
+                    if (_instance == null)
+                    {
+                        var singletonGO = new GameObject($"[{typeof(T).Name}]");
+                        _instance = singletonGO.AddComponent<T>();
+                        DontDestroyOnLoad(singletonGO);
+                    }
+                }
+                return _instance;
+            }
+        }
+    }
+
+    protected virtual void Awake()
+    {
+        if (_instance == null)
+        {
+            _instance = this as T;
+            DontDestroyOnLoad(gameObject);
+        }
+        else if (_instance != this)
+        {
+            // Tự tiêu hủy nếu có duplicate instance xuất hiện trong Scene
+            Destroy(gameObject);
+        }
+    }
+
+    protected virtual void OnApplicationQuit()
+    {
+        _isApplicationQuitting = true;
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (_instance == this)
+        {
+            _instance = null;
+        }
+    }
+
+    // Đảm bảo tương thích hoàn hảo với Enter Play Mode Options (Domain Reload Disabled)
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetOnDomainReload()
+    {
+        _instance = null;
+        _isApplicationQuitting = false;
+    }
+}</code></pre>
+            </div>
+
+            <!-- TÌNH HUỐNG 4 -->
+            <h3 id="code-runner">5.4 Static Coroutine Runner vs Phương Pháp Hiện Đại UniTask</h3>
+            <p>
+                Làm thế nào để chạy tác vụ chờ đợi (Delay / Tween / Web Request) từ một hàm static?
+            </p>
+
+            <div class="code-block-wrapper">
+                <div class="code-block-header">
+                    <span class="code-label label-success">✅ PHƯƠNG PHÁP 1: CoroutineRunner (Cho các dự án Unity thuần túy)</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code class="language-csharp">using System.Collections;
+using UnityEngine;
+
+public class CoroutineRunner : MonoBehaviour
+{
+    private static CoroutineRunner _runner;
+
+    private static void EnsureRunner()
+    {
+        if (_runner == null)
+        {
+            var go = new GameObject("[CoroutineRunner_Hidden]");
+            go.hideFlags = HideFlags.HideAndDontSave; // Ẩn khỏi Scene Hierarchy cho gọn
+            _runner = go.AddComponent<CoroutineRunner>();
+            DontDestroyOnLoad(go);
+        }
+    }
+
+    // Static helper cho phép bất kỳ ai chạy Coroutine mà không cần là MonoBehaviour
+    public static Coroutine StartRoutine(IEnumerator routine)
+    {
+        EnsureRunner();
+        return _runner.StartCoroutine(routine);
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetDomain() => _runner = null;
+}
+
+// Cách gọi cực kỳ đơn giản từ bất kỳ static class nào:
+public static class GameUtilities
+{
+    public static void DelayedAction(float delaySeconds, System.Action callback)
+    {
+        CoroutineRunner.StartRoutine(DelayRoutine(delaySeconds, callback));
+    }
+
+    private static IEnumerator DelayRoutine(float delay, System.Action callback)
+    {
+        yield return new WaitForSeconds(delay);
+        callback?.Invoke();
+    }
+}</code></pre>
+            </div>
+
+            <div class="code-block-wrapper">
+                <div class="code-block-header">
+                    <span class="code-label label-success">🚀 PHƯƠNG PHÁP 2 (KHUYÊN DÙNG): UniTask Bất Đồng Bộ Hiện Đại (Zero Allocation)</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code class="language-csharp">using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+
+public static class ModernAsyncUtility
+{
+    // ✅ Chạy trực tiếp qua async/await mà KHÔNG CẦN bất kỳ GameObject hay CoroutineRunner nào!
+    public static async UniTaskVoid DelayCallAsync(float seconds, Action onCompleted, CancellationToken ct = default)
+    {
+        // Chờ đợi tích hợp chặt chẽ vào Unity PlayerLoop mà không tốn Garbage Allocation
+        bool isCancelled = await UniTask.Delay(TimeSpan.FromSeconds(seconds), cancellationToken: ct)
+                                       .SuppressCancellationThrow();
+
+        if (!isCancelled)
+        {
+            onCompleted?.Invoke();
+        }
+    }
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- PHẦN 6: SENIOR CHECKLIST -->
+        <section class="doc-section" id="senior-checklist">
+            <div class="section-header">
+                <span class="section-tag">PHẦN 6</span>
+                <h2>Bảng Kiểm Tra Code (Checklist Trước Khi Merge Pull Request)</h2>
+            </div>
+            <p class="section-lead">
+                Trước khi commit code hoặc tạo Pull Request, các bạn Junior hãy tự duyệt qua bảng kiểm tra 5 điểm vàng này:
+            </p>
+
+            <ul class="checklist">
+                <li class="checklist-item">
+                    <span class="check-icon">📋</span>
+                    <div><strong>Quy tắc 1: Đăng ký Event phải đi kèm Hủy đăng ký</strong><br>Nếu có dòng <code class="inline-code">StaticClass.MyEvent += Handler</code> ở <code class="inline-code">OnEnable()</code>, đã có dòng <code class="inline-code">StaticClass.MyEvent -= Handler</code> ở <code class="inline-code">OnDisable()</code> chưa?</div>
+                </li>
+                <li class="checklist-item">
+                    <span class="check-icon">📋</span>
+                    <div><strong>Quy tắc 2: Không lưu trữ trực tiếp Scene GameObject trong biến static</strong><br>Tuyệt đối không dùng <code class="inline-code">public static Transform PlayerTransform</code> vì khi chuyển scene biến này sẽ trỏ vào vùng nhớ rác sinh ra MissingReferenceException.</div>
+                </li>
+                <li class="checklist-item">
+                    <span class="check-icon">📋</span>
+                    <div><strong>Quy tắc 3: Luôn có hàm SubsystemRegistration cho các biến static mutable</strong><br>Đã gắn thuộc tính <code class="inline-code">[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]</code> để reset biến tĩnh khi tắt Domain Reload chưa?</div>
+                </li>
+                <li class="checklist-item">
+                    <span class="check-icon">📋</span>
+                    <div><strong>Quy tắc 4: Kiểm tra Application Quitting ở Singleton</strong><br>Singleton của bạn đã có cơ chế ngắt việc tạo Instance mới khi người chơi đang bấm thoát game chưa?</div>
+                </li>
+                <li class="checklist-item">
+                    <span class="check-icon">📋</span>
+                    <div><strong>Quy tắc 5: Ưu tiên Stateless Utility Functions</strong><br>Hàm static của bạn có thực sự là hàm tiện ích thuần túy không? Nếu nó phải quản lý quá nhiều state phức tạp, hãy cân nhắc chuyển sang ScriptableObject Architecture hoặc Dependency Injection (VContainer / Zenject).</div>
+                </li>
+            </ul>
+
+            <div class="callout callout-senior" style="margin-top: 30px;">
+                <div class="callout-icon">🏆</div>
+                <div class="callout-content">
+                    <div class="callout-title">Lời Kết:</div>
+                    <div class="callout-text">
+                        "Từ khóa <code class="inline-code">static</code> giống như một con dao hai lưỡi sắc bén. Trong tay một người thợ mộc lành nghề, nó tạo ra những công cụ tiện ích mạnh mẽ và tinh tế. Nhưng nếu vung bừa bãi, nó sẽ cắt vào chính đôi tay của bạn và đồng đội. Hãy luôn tôn trọng vòng đời của engine và chúc các bạn code game mượt mà, không bug!"
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- HIGHLIGHT.JS SCRIPT -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+    <script>
+        // Init Syntax Highlighting
+        hljs.highlightAll();
+
+        // Theme Toggle Logic
+        const themeBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const html = document.documentElement;
+
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+
+        // Copy Code Functionality
+        function copyCode(btn) {
+            const pre = btn.closest('.code-block-wrapper').querySelector('pre code');
+            navigator.clipboard.writeText(pre.innerText).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = 'Đã chép! ✓';
+                btn.style.color = '#34d399';
+                btn.style.borderColor = '#10b981';
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.color = '';
+                    btn.style.borderColor = '';
+                }, 2000);
+            });
+        }
+
+        // Mobile Menu Toggle
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+
+        mobileBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        // Active Link Highlighting on Scroll
+        const sections = document.querySelectorAll('.doc-section, #intro');
+        const navLinks = document.querySelectorAll('.sidebar .nav-link');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
