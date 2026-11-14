@@ -8,27 +8,27 @@ namespace DQHieu.Framework.Sample
     using DQHieu.Framework.Data;
     public class DataManagerSample : MonoBehaviour
     {
-        [SerializeField] private TMP_InputField sampleStringField;
+        [SerializeField] private TMP_InputField _sampleStringField;
 
         private void Start()
         {
             DataManager.Instance.LoadData();
-            sampleStringField.text = DataManager.Instance.sampleData.sampleString;  
+            _sampleStringField.text = DataManager.Instance.SampleData.SampleString;  
         }
 
         private void OnEnable()
         {
-            sampleStringField.onValueChanged.AddListener(OnSampleStringChanged);
+            _sampleStringField.onValueChanged.AddListener(OnSampleStringChanged);
         }
 
         private void OnDisable()
         {
-            sampleStringField.onValueChanged.RemoveListener(OnSampleStringChanged);
+            _sampleStringField.onValueChanged.RemoveListener(OnSampleStringChanged);
         }
         
         private void OnSampleStringChanged(string value)
         {
-            DataManager.Instance.sampleData.sampleString = value;
+            DataManager.Instance.SampleData.SampleString = value;
         }
         
     }

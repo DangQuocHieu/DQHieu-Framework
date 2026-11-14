@@ -6,14 +6,14 @@ namespace DQHieu.Framework.DesignPattern
     [System.Serializable]
     public class PoolItemConfig
     {
-        public GameObject prefab;
-        public int initPoolSize;
+        public GameObject Prefab;
+        public int InitPoolSize;
     }
     
     [CreateAssetMenu(fileName = "ObjectPoolConfig", menuName = "Scriptable Objects/ObjectPoolConfig")]
     public class ObjectPoolConfig : ScriptableObject
     {
-        public List<PoolItemConfig> poolItemsConfigs = new();
+        public List<PoolItemConfig> PoolItemsConfigs = new();
     }
 
 }

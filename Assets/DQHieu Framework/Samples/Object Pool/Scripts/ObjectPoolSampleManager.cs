@@ -8,9 +8,9 @@ namespace DQHieu.Framework.Sample
     using System.Collections.Generic;
     public class ObjectPoolSampleManager : MonoBehaviour
     {
-        [SerializeField] private SamplePooledObject samplePooledObjectPrefab;
-        [SerializeField] private int instantiateCount;
-        [SerializeField] private float spawnRadius = 10f;
+        [SerializeField] private SamplePooledObject _samplePooledObjectPrefab;
+        [SerializeField] private int _instantiateCount;
+        [SerializeField] private float _spawnRadius = 10f;
 
         private void Start()
         {
@@ -21,9 +21,9 @@ namespace DQHieu.Framework.Sample
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                for (int i = 0; i < instantiateCount; i++)
+                for (int i = 0; i < _instantiateCount; i++)
                 {
-                   var ins = ObjectPoolManager.Instance.Get(samplePooledObjectPrefab, GetRandomSpawnPos(),
+                   var ins = ObjectPoolManager.Instance.Get(_samplePooledObjectPrefab, GetRandomSpawnPos(),
                         Quaternion.identity);
                    ins.Init();
                 }
@@ -33,7 +33,7 @@ namespace DQHieu.Framework.Sample
 
         public Vector3 GetRandomSpawnPos()
         {
-            return Random.insideUnitSphere * spawnRadius;
+            return Random.insideUnitSphere * _spawnRadius;
         }
     }
 

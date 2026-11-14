@@ -4,21 +4,21 @@ namespace DQHieu.Framework.DesignPattern
     
     public class Singleton<T>: MonoBehaviour where T : Component
     {
-        private static T instance;
+        private static T _instance;
         public static T Instance
         {
             get
             {
-                if (instance == null)
+                if (_instance == null)
                 {
-                    instance = FindAnyObjectByType<T>();
-                    if (instance == null)
+                    _instance = FindAnyObjectByType<T>();
+                    if (_instance == null)
                     {
                         SetupInstance();
                     }
                 }
 
-                return instance;
+                return _instance;
             }
         }
         
@@ -29,20 +29,20 @@ namespace DQHieu.Framework.DesignPattern
 
         private static void SetupInstance()
         {
-            instance = FindAnyObjectByType<T>();
-            if(instance == null)
+            _instance = FindAnyObjectByType<T>();
+            if(_instance == null)
             {
                 GameObject go = new();
                 go.name = typeof(T).Name;   
-                instance =  go.AddComponent<T>();
+                _instance =  go.AddComponent<T>();
             }
         }
 
         private void RemoveDuplicates()
         {
-            if (instance == null)
+            if (_instance == null)
             {
-                instance = this as T;
+                _instance = this as T;
             }
             else
             {

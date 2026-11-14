@@ -6,43 +6,43 @@ namespace DQHieu.Framework.DesignPattern
 
     public class ObjectPoolManager : Singleton<ObjectPoolManager>
     {
-        private Dictionary<GameObject, Stack<Component>> pools = new();
-        private Dictionary<GameObject, GameObject> instanceToPrefab = new();
-        private Dictionary<GameObject, Transform> poolContainers = new();
-        [SerializeField] private ObjectPoolConfig objectPoolConfig;
+        private Dictionary<GameObject, Stack<Component>> _pools = new();
+        private Dictionary<GameObject, GameObject> _instanceToPrefab = new();
+        private Dictionary<GameObject, Transform> _poolContainers = new();
+        [SerializeField] private ObjectPoolConfig _objectPoolConfig;
 
         public void InitializePools()
         {
-            if (objectPoolConfig == null)
+            if (_objectPoolConfig == null)
             {
                 Debug.Log("Chưa gắn asset Object Pool Config!");
                 return;
             }
 
-            foreach (var poolItemConfig in objectPoolConfig.poolItemsConfigs)
+            foreach (var poolItemConfig in _objectPoolConfig.PoolItemsConfigs)
             {
-                if (poolItemConfig.prefab == null) continue;
-                Prewarm(poolItemConfig.prefab, poolItemConfig.initPoolSize);
+                if (poolItemConfig.Prefab == null) continue;
+                Prewarm(poolItemConfig.Prefab, poolItemConfig.InitPoolSize);
             }
         }
 
         private Transform GetOrCreateContainer(GameObject prefab)
         {
-            if (!poolContainers.TryGetValue(prefab, out Transform container))
+            if (!_poolContainers.TryGetValue(prefab, out Transform container))
             {
                 container = new GameObject($"{prefab.name} Container").transform;
                 container.SetParent(transform, false);
-                poolContainers.Add(prefab, container);
+                _poolContainers.Add(prefab, container);
             }
             return container;
         }
 
         private void Prewarm(GameObject prefab, int initPoolSize)
         {
-            if (!pools.TryGetValue(prefab, out Stack<Component> pool))
+            if (!_pools.TryGetValue(prefab, out Stack<Component> pool))
             {
                 pool = new Stack<Component>(initPoolSize);
-                pools.Add(prefab, pool);
+                _pools.Add(prefab, pool);
             }
 
             Transform container = GetOrCreateContainer(prefab);
@@ -51,7 +51,7 @@ namespace DQHieu.Framework.DesignPattern
             {
                 GameObject obj = Object.Instantiate(prefab, container);
                 obj.SetActive(false);
-                instanceToPrefab.Add(obj, prefab);
+                _instanceToPrefab.Add(obj, prefab);
                 pool.Push(obj.transform);
             }
         }
@@ -61,10 +61,10 @@ namespace DQHieu.Framework.DesignPattern
             GameObject prefabObj = prefab.gameObject;
             T instance = null;
 
-            if (!pools.TryGetValue(prefabObj, out Stack<Component> pool))
+            if (!_pools.TryGetValue(prefabObj, out Stack<Component> pool))
             {
                 pool = new Stack<Component>();
-                pools.Add(prefabObj, pool);
+                _pools.Add(prefabObj, pool);
             }
 
             Transform container = GetOrCreateContainer(prefabObj);
@@ -82,7 +82,7 @@ namespace DQHieu.Framework.DesignPattern
             else
             {
                 instance = Object.Instantiate(prefab, container);
-                instanceToPrefab.Add(instance.gameObject, prefabObj);
+                _instanceToPrefab.Add(instance.gameObject, prefabObj);
             }
             return instance;
         }
@@ -109,14 +109,14 @@ namespace DQHieu.Framework.DesignPattern
                 return;
             }
 
-            if (instanceToPrefab.TryGetValue(obj, out GameObject prefabObj))
+            if (_instanceToPrefab.TryGetValue(obj, out GameObject prefabObj))
             {
                 obj.SetActive(false);
-                if (poolContainers.TryGetValue(prefabObj, out Transform container) && instance.transform.parent != container)
+                if (_poolContainers.TryGetValue(prefabObj, out Transform container) && instance.transform.parent != container)
                 {
                     instance.transform.SetParent(container, false);
                 }
-                pools[prefabObj].Push(instance);
+                _pools[prefabObj].Push(instance);
             }
             else
             {

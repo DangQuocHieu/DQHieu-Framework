@@ -12,17 +12,17 @@ namespace DQHieu.Framework.Data
     
     public class DataManager : DesignPattern.Singleton<DataManager>
     {
-        public SampleData sampleData;
+        public SampleData SampleData;
         
         public void LoadData()
         {
-            sampleData = new();
-            if(PlayerPrefs.HasKey(DataSaveKey.SampleDataSaveKey))  sampleData = JsonUtility.FromJson<SampleData>(PlayerPrefs.GetString(DataSaveKey.SampleDataSaveKey));
+            SampleData = new();
+            if(PlayerPrefs.HasKey(DataSaveKey.SampleDataSaveKey))  SampleData = JsonUtility.FromJson<SampleData>(PlayerPrefs.GetString(DataSaveKey.SampleDataSaveKey));
         }
 
         public void SaveData()
         {
-            PlayerPrefs.SetString(DataSaveKey.SampleDataSaveKey, JsonUtility.ToJson(sampleData));
+            PlayerPrefs.SetString(DataSaveKey.SampleDataSaveKey, JsonUtility.ToJson(SampleData));
         }
 
         private void OnApplicationPause(bool pauseStatus)

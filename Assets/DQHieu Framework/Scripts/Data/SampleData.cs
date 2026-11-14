@@ -5,7 +5,7 @@ namespace DQHieu.Framework.Data
     [System.Serializable]
     public class SampleData 
     {
-        public string sampleString;
+        public string SampleString;
     }
 
 }
