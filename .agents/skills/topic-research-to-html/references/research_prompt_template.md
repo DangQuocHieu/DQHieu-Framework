@@ -1,30 +1,36 @@
-# Mẫu Prompt Chuẩn Cho Subagent Nghiên Cứu Kỹ Thuật (Research Subagent)
+# Mẫu Prompt Chuẩn Cho Subagent Nghiên Cứu (Dễ Hiểu Cho Người Mới & Low-Tech)
 
-Khi nhận được yêu cầu tìm hiểu bất kỳ chủ đề lập trình hoặc game dev nào, hãy cấu trúc prompt cho subagent theo 6 trục nghiên cứu trọng tâm dưới đây:
+Khi nhận được yêu cầu tìm hiểu bất kỳ chủ đề lập trình hoặc công nghệ nào, hãy cấu trúc prompt cho subagent theo 6 trục nghiên cứu dưới đây, **ưu tiên tính dễ hiểu, ngôn ngữ đời thường và ví dụ trực quan** bên cạnh độ chính xác kỹ thuật:
 
 ```markdown
-Hãy nghiên cứu toàn diện và chuyên sâu về chủ đề: `{CHỦ_ĐỀ_HOẶC_TỪ_KHÓA}` trong bối cảnh `{CÔNG_NGHỆ_HOẶC_ENGINE}` (dựa trên Tài liệu chính thức, Đặc tả kỹ thuật ngôn ngữ, Diễn đàn lập trình thực tế, Best Practices & Anti-patterns).
+Hãy nghiên cứu toàn diện về chủ đề: `{CHỦ_ĐỀ_HOẶC_TỪ_KHÓA}` trong bối cảnh `{CÔNG_NGHỆ_HOẶC_ENGINE}` (dựa trên Tài liệu chính thức, Kinh nghiệm thực tế, Best Practices & Anti-patterns).
+
+**YÊU CẦU QUAN TRỌNG VỀ CÁCH DIỄN ĐẠT:**
+- Người đọc mục tiêu bao gồm cả người **Low-tech hoặc mới tiếp cận công nghệ này**.
+- Tuyệt đối KHÔNG nhồi nhét thuật ngữ tiếng Anh chuyên ngành nếu có thể diễn đạt bằng tiếng Việt bình dân.
+- Mọi thuật ngữ kỹ thuật bắt buộc phải dùng (như `Static`, `Heap`, `Garbage Collector`, `Serialization`, `Instance`, `Async`...) phải đi kèm **1 câu giải thích bình dân** ("hiểu đơn giản là...") và **1 ví dụ ẩn dụ đời thường** (ví dụ: bảng thông báo chung, nhân viên dọn rác, bản vẽ thiết kế vs ngôi nhà thật...).
+- Tách bạch rõ phần **Kiến thức cốt lõi dễ hiểu** (ai cũng đọc được) và phần **Chi tiết kỹ thuật nâng cao** (để người đọc có thể bỏ qua nếu chưa cần).
 
 Nội dung nghiên cứu cần tập trung vào 6 trục:
-1. Bản chất kỹ thuật & Cơ chế nền tảng:
-   - Định nghĩa chính xác, cú pháp, cách thức trình biên dịch và runtime xử lý.
-   - Cơ chế cấp phát bộ nhớ (Stack vs Managed Heap vs Native Heap), vòng đời (Lifetime), hành vi của Garbage Collector (GC).
-2. Đặc thù riêng trong Game Engine / Framework:
-   - Tương tác với Game Loop / Engine Lifecycle (Awake, Start, Update, Scene Load/Unload, AppDomain Reload, Serialization).
-   - Tương tác với đa luồng (Multi-threading, Job System) hoặc xử lý bất đồng bộ (Coroutine, async/await, UniTask).
-3. Ưu điểm & Nhược điểm kỹ thuật chuyên sâu:
-   - Ưu điểm: Hiệu năng, tiện ích, tối ưu bộ nhớ, tốc độ thực thi.
-   - Nhược điểm & Rủi ro: Rò rỉ bộ nhớ (Memory Leak), Tight Coupling, khó Unit Test / Mock, Race Condition, Deadlock, phá vỡ SOLID.
-4. Ma trận quyết định (Decision Matrix):
-   - Khi nào NÊN sử dụng? (Liệt kê các kịch bản thực tế kèm lý do).
-   - Khi nào TUYỆT ĐỐI TRÁNH? (Các cạm bẫy, anti-pattern thường gặp).
-   - Phương án thay thế tốt hơn trong từng trường hợp.
-5. Bộ Code Mẫu Thực Chiến (Đối Chiếu Sai vs Đúng):
-   - Cung cấp ít nhất 3-4 cặp code: Code Sai (Anti-Pattern dễ dính bug) đối chiếu trực tiếp với Code Đúng (Best Practice chuẩn production).
-   - Giải thích cặn kẽ tại sao code sai lại sinh ra lỗi và cơ chế đằng sau cách sửa.
-6. Ý tưởng trực quan hóa sơ đồ:
-   - Gợi ý 3-4 sơ đồ hoặc biểu đồ (Memory layout, Lifecycle flow, Decision tree, Architectural diagram) giúp người đọc dễ hình dung nhất.
+1. **Giải thích bình dân & Từ điển thuật ngữ nhanh:**
+   - Chủ đề này giải quyết vấn đề gì trong thực tế? (1-2 câu ngắn gọn, không thuật ngữ).
+   - 1 ví dụ ẩn dụ đời thường xuyên suốt giúp người chưa biết lập trình cũng hình dung được ngay.
+   - Bảng giải thích 5-8 thuật ngữ cốt lõi sẽ xuất hiện trong bài (viết bằng ngôn ngữ đời thường, không dùng thuật ngữ này để giải thích thuật ngữ kia).
+2. **Bản chất & Cách hoạt động (Từ cơ bản đến nâng cao):**
+   - Cách hoạt động cốt lõi giải thích bằng ngôn ngữ tự nhiên, từng bước một.
+   - Chi tiết kỹ thuật sâu hơn (bộ nhớ, vòng đời, cơ chế bên dưới của trình biên dịch/runtime) — đánh dấu rõ là phần nâng cao.
+3. **Đặc thù riêng trong Engine / Framework:**
+   - Khi đưa vào môi trường thực tế (ví dụ: Unity Game Loop, chuyển Scene, bấm Play/Stop trong Editor) thì có điều gì bất ngờ hay xảy ra?
+   - Giải thích rõ *tại sao* lại xảy ra bằng ngôn ngữ dễ hiểu trước khi gọi tên kỹ thuật.
+4. **Ưu điểm, Nhược điểm & Khi nào nên dùng (Ma trận quyết định):**
+   - Ưu điểm vs Rủi ro thường gặp (diễn đạt bằng hệ quả thực tế: "làm game nặng dần theo thời gian", "sửa chỗ này làm hỏng chỗ khác"... thay vì chỉ ghi từ khóa như "Memory Leak", "Tight Coupling").
+   - Khi nào NÊN dùng vs KHÔNG NÊN dùng (kèm câu hỏi tự kiểm tra đơn giản dạng Có/Không).
+5. **Bộ Code Mẫu Thực Chiến (Giải thích từng dòng):**
+   - Cung cấp 3-4 cặp ví dụ: Cách làm dễ gây lỗi (❌) đối chiếu với Cách làm an toàn (✅).
+   - Bắt buộc có **comment tiếng Việt dễ hiểu** ở từng bước quan trọng trong code, và giải thích hậu quả thực tế nếu làm sai.
+6. **Ý tưởng sơ đồ trực quan hóa dễ hiểu:**
+   - Gợi ý 2-3 sơ đồ (ví dụ: so sánh trực quan, luồng đi từng bước, cây quyết định Có/Không).
+   - Nhãn trong sơ đồ phải dùng **tiếng Việt dễ hiểu**, gắn với ví dụ đời thường, tránh nhồi nhét thuật ngữ tiếng Anh khó hiểu.
 
-Hãy tổng hợp kết quả chi tiết, rõ ràng, có chiều sâu kỹ thuật cao để làm cơ sở biên soạn tài liệu HTML hoàn chỉnh.
+Hãy tổng hợp kết quả rõ ràng, mạch lạc, ưu tiên sự dễ hiểu cho người mới nhưng vẫn đảm bảo chính xác về mặt kỹ thuật.
 ```
-

@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Bus Pattern (EventBus<T>) trong Unity & C#</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <style>
+        :root[data-theme="dark"] {
+            --bg-body: #0a0e17;
+            --bg-sidebar: #0f1523;
+            --bg-card: #151c2e;
+            --bg-card-hover: #1b243b;
+            --bg-code: #0b0f19;
+            --border-color: #222f49;
+            --border-accent: #38bdf8;
+            --border-danger: #f43f5e;
+            --border-success: #10b981;
+            --border-warning: #f59e0b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.25);
+            --accent-purple: #a855f7;
+            --tag-bg: rgba(56, 189, 248, 0.12);
+            --danger-bg: rgba(244, 63, 94, 0.1);
+            --danger-text: #fb7185;
+            --success-bg: rgba(16, 185, 129, 0.1);
+            --success-text: #34d399;
+            --warning-bg: rgba(245, 158, 11, 0.1);
+            --warning-text: #fbbf24;
+            --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+        }
+
+        :root[data-theme="light"] {
+            --bg-body: #f8fafc;
+            --bg-sidebar: #ffffff;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f1f5f9;
+            --bg-code: #0f172a;
+            --border-color: #e2e8f0;
+            --border-accent: #0284c7;
+            --border-danger: #e11d48;
+            --border-success: #059669;
+            --border-warning: #d97706;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-dim: #94a3b8;
+            --accent: #0284c7;
+            --accent-glow: rgba(2, 132, 199, 0.2);
+            --accent-purple: #9333ea;
+            --tag-bg: rgba(2, 132, 199, 0.1);
+            --danger-bg: rgba(225, 29, 72, 0.08);
+            --danger-text: #be123c;
+            --success-bg: rgba(5, 150, 105, 0.08);
+            --success-text: #047857;
+            --warning-bg: rgba(217, 119, 6, 0.08);
+            --warning-text: #b45309;
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.7;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-size: 15px;
+        }
+
+        /* SIDEBAR NAVIGATION */
+        .sidebar {
+            width: 320px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--accent);
+            background: var(--tag-bg);
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-accent);
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.3;
+        }
+
+        .sidebar-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 16px 12px;
+            flex: 1;
+        }
+
+        .nav-item {
+            margin-bottom: 4px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.15s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--text-main);
+            background: var(--bg-card);
+        }
+
+        .nav-link.active {
+            color: var(--accent);
+            background: var(--tag-bg);
+            font-weight: 600;
+            border-left: 3px solid var(--accent);
+        }
+
+        .nav-sub {
+            list-style: none;
+            padding-left: 18px;
+            margin-top: 2px;
+        }
+
+        .nav-sub .nav-link {
+            font-size: 12.5px;
+            padding: 6px 10px;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .theme-toggle-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: 320px;
+            flex: 1;
+            padding: 40px 60px 80px;
+            max-width: 1140px;
+        }
+
+        /* HERO HEADER */
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 36px 40px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--accent), var(--accent-purple));
+        }
+
+        .hero-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .meta-pill {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pill-senior {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .pill-time {
+            background: var(--tag-bg);
+            color: var(--accent);
+            border: 1px solid var(--border-accent);
+        }
+
+        .pill-level {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        h1.hero-title {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.25;
+            margin-bottom: 12px;
+            background: linear-gradient(90deg, #f1f5f9 0%, #38bdf8 60%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        :root[data-theme="light"] h1.hero-title {
+            background: linear-gradient(90deg, #0f172a 0%, #0284c7 60%, #9333ea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 16px;
+            color: var(--text-muted);
+            max-width: 820px;
+            line-height: 1.6;
+        }
+
+        /* SECTIONS */
+        .doc-section {
+            margin-bottom: 56px;
+            scroll-margin-top: 24px;
+        }
+
+        .section-header {
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .section-header h2 {
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-main);
+        }
+
+        .section-header .section-tag {
+            font-size: 13px;
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--tag-bg);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .section-lead {
+            font-size: 15.5px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            line-height: 1.7;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 28px 0 12px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            scroll-margin-top: 20px;
+        }
+
+        h4 {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 18px 0 8px;
+            color: var(--accent);
+        }
+
+        p {
+            margin-bottom: 14px;
+            color: var(--text-main);
+        }
+
+        strong {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        code.inline-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13.5px;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        /* SENIOR CALLOUT BOX */
+        .callout {
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin: 20px 0;
+            display: flex;
+            gap: 16px;
+            border-left: 4px solid;
+            background: var(--bg-card);
+        }
+
+        .callout-senior {
+            border-left-color: var(--accent-purple);
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(56, 189, 248, 0.05) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.25);
+            border-left: 4px solid var(--accent-purple);
+        }
+
+        .callout-warning {
+            border-left-color: var(--border-danger);
+            background: var(--danger-bg);
+            border: 1px solid rgba(244, 63, 94, 0.25);
+            border-left: 4px solid var(--border-danger);
+        }
+
+        .callout-tip {
+            border-left-color: var(--border-success);
+            background: var(--success-bg);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-left: 4px solid var(--border-success);
+        }
+
+        .callout-info {
+            border-left-color: var(--border-accent);
+            background: var(--tag-bg);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-left: 4px solid var(--border-accent);
+        }
+
+        .callout-icon {
+            font-size: 24px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .callout-content {
+            flex: 1;
+        }
+
+        .callout-title {
+            font-weight: 700;
+            font-size: 14.5px;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+
+        .callout-text {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            margin-bottom: 0;
+            line-height: 1.6;
+        }
+
+        /* GRID CARDS */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            margin: 20px 0;
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .info-card:hover {
+            border-color: var(--border-accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .icon-blue { background: rgba(56, 189, 248, 0.15); color: var(--accent); }
+        .icon-purple { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+        .icon-red { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+        .icon-green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .icon-yellow { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-main);
+        }
+
+        .card-body {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* SVG DIAGRAMS */
+        .diagram-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 24px;
+            margin: 24px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        .diagram-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--accent);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .diagram-svg {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* CODE BOX */
+        .code-block-wrapper {
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .code-block-header {
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .code-label {
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .label-danger { color: var(--danger-text); }
+        .label-success { color: var(--success-text); }
+        .label-info { color: var(--accent); }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .copy-btn:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        pre {
+            margin: 0;
+            padding: 16px !important;
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 13px !important;
+            line-height: 1.6 !important;
+            overflow-x: auto;
+        }
+
+        /* COMPARISON TABLE */
+        .comparison-table-wrapper {
+            overflow-x: auto;
+            margin: 24px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        table.comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            text-align: left;
+        }
+
+        table.comparison-table th {
+            background: var(--bg-card);
+            padding: 14px 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        table.comparison-table td {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-muted);
+            vertical-align: top;
+        }
+
+        table.comparison-table tr:last-child td { border-bottom: none; }
+        table.comparison-table tr:hover td { background: var(--bg-card-hover); }
+
+        /* CHECKLIST */
+        .checklist {
+            list-style: none;
+            margin: 16px 0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .check-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 24px 20px 60px; }
+            .mobile-menu-btn { display: block; }
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+
+        .mobile-menu-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 200;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            display: none;
+        }
+
+        @media (max-width: 1024px) {
+            .mobile-menu-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MOBILE TOGGLE BUTTON -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">☰</button>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-badge">⚡ Senior Mentorship</div>
+            <div class="sidebar-title">Event Bus Pattern</div>
+            <div class="sidebar-subtitle">Cẩm nang chuẩn từ Senior Developer</div>
+        </div>
+
+        <ul class="nav-list">
+            <li class="nav-item"><a href="#intro" class="nav-link active"><span>☕</span> Lời Mở Đầu</a></li>
+            <li class="nav-item">
+                <a href="#fundamentals" class="nav-link">
+                    <span>PHẦN 1 </span>Bản Chất Kỹ Thuật &amp; Cơ Chế Nền Tảng
+                </a>
+                <ul class="nav-sub">
+                    <li><a href="#pubsub-vs-observer" class="nav-link">1.1. Định nghĩa: Event Bus (Pub/Sub) vs Observer &amp; C# event</a></li>
+                    <li><a href="#type-specialization" class="nav-link">1.2. Cơ chế Generic Static Class EventBus&lt;T&gt; trong CLR &amp; IL2CPP</a></li>
+                    <li><a href="#memory-gc" class="nav-link">1.3. Cơ chế cấp phát bộ nhớ, Boxing &amp; Static GC Root</a></li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a href="#unity-internals" class="nav-link">
+                    <span>PHẦN 2 </span>Đặc Thù Trong Unity Engine
+                </a>
+                <ul class="nav-sub">
+                    <li><a href="#monobehaviour-lifecycle" class="nav-link">2.1. Vòng đời MonoBehaviour: OnEnable/OnDisable vs Awake/OnDestroy</a></li>
+                    <li><a href="#domain-reload" class="nav-link">2.2. Bẫy "Disable Domain Reload" &amp; Zombie Listeners</a></li>
+                    <li><a href="#concurrency-reentrancy" class="nav-link">2.3. Multi-threading, Execution Order &amp; Re-entrancy khi đang Raise</a></li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a href="#pros-cons" class="nav-link">
+                    <span>PHẦN 3 </span>Ưu Điểm &amp; Nhược Điểm Toàn Diện
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#decision-matrix" class="nav-link">
+                    <span>PHẦN 4 </span>Ma Trận Quyết Định &amp; Phương Án Thay Thế
+                </a>
+                <ul class="nav-sub">
+                    <li><a href="#when-to-use" class="nav-link">4.1. Khi nào NÊN dùng vs KHÔNG NÊN dùng EventBus&lt;T&gt;</a></li>
+                    <li><a href="#alternatives" class="nav-link">4.2. So sánh EventBus&lt;T&gt; với các giải pháp thay thế</a></li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a href="#best-practices" class="nav-link">
+                    <span>PHẦN 5 </span>Thực Chiến Đối Chiếu: Anti-Pattern vs Best Practice
+                </a>
+                <ul class="nav-sub">
+                    <li><a href="#case-1" class="nav-link">5.1. Cài đặt EventBus&lt;T&gt;: Bản thô sơ vs Chuẩn Production (An toàn Domain Reload)</a></li>
+                    <li><a href="#case-2" class="nav-link">5.2. Vòng đời Subscribe/Unsubscribe: Lambda ẩn danh vs Named Method đối xứng</a></li>
+                    <li><a href="#case-3" class="nav-link">5.3. Event Payload: class / Boxing gây GC Spike vs readonly struct Zero-GC</a></li>
+                    <li><a href="#case-4" class="nav-link">5.4. Kiểm soát luồng: Ping-Pong Event Loop vs Fire-and-Forget cuối Pipeline</a></li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a href="#checklist" class="nav-link">
+                    <span>PHẦN 6 </span>Senior Checklist Trước Khi Merge Pull Request
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <button class="theme-toggle-btn" id="themeToggleBtn">
+                <span id="themeIcon">☀️</span> Chế độ Sáng/Tối
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- HERO BANNER -->
+        <header class="hero-banner" id="intro">
+            <div class="hero-meta">
+                <span class='meta-pill pill-senior'>👨‍💻 Senior Developer</span><span class='meta-pill pill-time'>⏱️ 12 phút</span><span class='meta-pill pill-level'>🎯 Unity &amp; C#</span>
+            </div>
+            <h1 class="hero-title">Event Bus Pattern (EventBus<T>) trong Unity</h1>
+            <p class="hero-desc">Giải phẫu toàn diện mô hình static EventBus<T> trong C# & Unity: cơ chế Type Specialization O(1), tối ưu Zero-GC với readonly struct, xử lý bẫy Domain Reload, ưu nhược điểm và bộ code chuẩn Production.</p>
+        </header>
+
+        <!-- MAIN BODY CONTENT -->
+        <!-- LỜI MỞ ĐẦU (SENIOR CALLOUT) -->
+<div class="callout callout-senior">
+    <div class="callout-icon">💡</div>
+    <div class="callout-content">
+        <div class="callout-title">Góc Nhìn Senior: Tại sao <code>EventBus&lt;T&gt;</code> vừa là "cứu tinh" vừa là "con dao hai lưỡi"?</div>
+        <div class="callout-text">
+            Mô hình <code class="inline-code">public static class EventBus&lt;T&gt;</code> (chỉ với một <code class="inline-code">Action&lt;T&gt; OnEvent</code> và 3 hàm <code class="inline-code">Subscribe</code>, <code class="inline-code">Unsubscribe</code>, <code class="inline-code">Raise</code>) là một trong những cách cài đặt <strong>Event Bus</strong> thanh lịch và nhanh nhất trong C#/Unity. Nó cắt đứt hoàn toàn dây chằng phụ thuộc giữa các hệ thống (<em>Combat, UI, Audio, Analytics</em>). Tuy nhiên, chính sự tiện lợi của <code class="inline-code">static</code> lại khiến nhiều lập trình viên dính bẫy <strong>Memory Leak</strong> (GC Root giữ xác object), <strong>Zombie Listener</strong> khi tắt Domain Reload, và <strong>Spaghetti Flow</strong> (khó trace luồng chạy khi lạm dụng). Tài liệu này sẽ bóc tách từ cơ chế CLR/IL2CPP bên dưới đến chuẩn cài đặt Production-ready.
+        </div>
+    </div>
+</div>
+
+<!-- PHẦN 1: BẢN CHẤT KỸ THUẬT -->
+<section class="doc-section" id="fundamentals">
+    <div class="section-header">
+        <span class="section-tag">PHẦN 1</span>
+        <h2>Bản Chất Kỹ Thuật &amp; Cơ Chế Nền Tảng</h2>
+    </div>
+    <p class="section-lead">
+        Để làm chủ <code class="inline-code">EventBus&lt;T&gt;</code>, trước tiên cần phân biệt nó với Observer truyền thống và hiểu cách C# Runtime (CLR / Mono / IL2CPP) biến một generic static class đơn giản thành kênh truyền tin tốc độ O(1).
+    </p>
+
+    <h3 id="pubsub-vs-observer">1.1. Định nghĩa: Event Bus (Pub/Sub) vs Observer &amp; C# <code>event</code></h3>
+    <p>
+        <strong>Event Bus Pattern</strong> là một biến thể của kiến trúc <strong>Publish–Subscribe (Pub/Sub)</strong>, sử dụng một kênh trung gian (Message Broker) để chuyển thông điệp theo kiểu dữ liệu. Khác với C# <code class="inline-code">event</code> trực tiếp (Observer), cả bên phát (<strong>Publisher</strong>) lẫn bên nhận (<strong>Subscriber</strong>) đều <strong>không cần biết sự tồn tại của nhau</strong> — chúng chỉ cần biết tới <code class="inline-code">EventBus&lt;T&gt;</code> và struct sự kiện <code class="inline-code">T</code>.
+    </p>
+
+    <div class="comparison-table-wrapper">
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Tiêu chí</th>
+                    <th>Observer / C# <code>event</code> trực tiếp</th>
+                    <th>Event Bus (<code>EventBus&lt;T&gt;</code>)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Mức độ Coupling</strong></td>
+                    <td><strong>1 chiều (Direct Coupling)</strong>: Subscriber phải giữ tham chiếu trực tiếp tới instance của Publisher (<code class="inline-code">player.OnDied += ...</code>).</td>
+                    <td><strong>Decoupled hoàn toàn (Zero Reference)</strong>: Publisher và Subscriber độc lập tuyệt đối, dễ tách Assembly Definition (<code class="inline-code">.asmdef</code>).</td>
+                </tr>
+                <tr>
+                    <td><strong>Phạm vi giao tiếp</strong></td>
+                    <td>1–1 hoặc 1–N gắn chặt với vòng đời của một instance cụ thể.</td>
+                    <td>N–N toàn cục (Global Broadcast theo loại sự kiện <code class="inline-code">T</code>).</td>
+                </tr>
+                <tr>
+                    <td><strong>Quản lý vòng đời</strong></td>
+                    <td>Khi Publisher bị hủy và GC thu hồi, danh sách delegate bên trong nó tự biến mất theo.</td>
+                    <td>Kênh <code class="inline-code">static</code> sống suốt vòng đời AppDomain — Subscriber <strong>bắt buộc</strong> phải tự <code class="inline-code">Unsubscribe</code>.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- SVG 1: KIẾN TRÚC PUB/SUB VS TIGHT COUPLING -->
+    <div class="diagram-container">
+        <div class="diagram-title"><span>🔗 Kiến Trúc Tight Coupling vs EventBus&lt;T&gt; (Zero Reference)</span></div>
+        <svg class="diagram-svg" viewBox="0 0 850 310" width="850" height="310" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M 0 0 L 8 4 L 0 8 z" fill="#f43f5e"/>
+                </marker>
+                <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M 0 0 L 8 4 L 0 8 z" fill="#38bdf8"/>
+                </marker>
+                <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M 0 0 L 8 4 L 0 8 z" fill="#10b981"/>
+                </marker>
+            </defs>
+
+            <!-- Background -->
+            <rect x="10" y="10" width="830" height="290" rx="10" fill="#0f172a" stroke="#222f49" stroke-width="1.5"/>
+
+            <!-- Left Panel: Tight Coupling -->
+            <rect x="25" y="25" width="365" height="260" rx="8" fill="#151c2e" stroke="#f43f5e" stroke-width="1.2" stroke-dasharray="5,4"/>
+            <text x="207" y="50" fill="#fb7185" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700">❌ Tight Coupling (Direct References)</text>
+
+            <rect x="45" y="125" width="115" height="50" rx="6" fill="#1e293b" stroke="#f43f5e" stroke-width="1.5"/>
+            <text x="102" y="154" fill="#f1f5f9" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600">PlayerHealth</text>
+
+            <rect x="245" y="70" width="125" height="36" rx="6" fill="#1e293b" stroke="#64748b"/>
+            <text x="307" y="92" fill="#cbd5e1" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11">HealthUI</text>
+
+            <rect x="245" y="120" width="125" height="36" rx="6" fill="#1e293b" stroke="#64748b"/>
+            <text x="307" y="142" fill="#cbd5e1" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11">AudioManager</text>
+
+            <rect x="245" y="170" width="125" height="36" rx="6" fill="#1e293b" stroke="#64748b"/>
+            <text x="307" y="192" fill="#cbd5e1" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11">VFXManager</text>
+
+            <rect x="245" y="220" width="125" height="36" rx="6" fill="#1e293b" stroke="#64748b"/>
+            <text x="307" y="242" fill="#cbd5e1" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11">Achievements</text>
+
+            <path d="M 160 138 L 240 90" fill="none" stroke="#f43f5e" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+            <path d="M 160 146 L 240 138" fill="none" stroke="#f43f5e" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+            <path d="M 160 155 L 240 186" fill="none" stroke="#f43f5e" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+            <path d="M 160 164 L 240 236" fill="none" stroke="#f43f5e" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+
+            <!-- Right Panel: EventBus<T> -->
+            <rect x="410" y="25" width="415" height="260" rx="8" fill="#151c2e" stroke="#10b981" stroke-width="1.2"/>
+            <text x="617" y="50" fill="#34d399" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700">✅ EventBus&lt;T&gt; (Decoupled Pub/Sub)</text>
+
+            <rect x="425" y="125" width="105" height="50" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="477" y="148" fill="#f1f5f9" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600">PlayerHealth</text>
+            <text x="477" y="164" fill="#38bdf8" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="9.5">Publisher</text>
+
+            <!-- Bus Hub -->
+            <rect x="562" y="108" width="115" height="84" rx="8" fill="#0b0f19" stroke="#a855f7" stroke-width="2"/>
+            <text x="619" y="138" fill="#c084fc" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700">EventBus&lt;T&gt;</text>
+            <text x="619" y="156" fill="#94a3b8" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5">s_OnEvent</text>
+            <text x="619" y="174" fill="#34d399" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="9.5">O(1) Static Field</text>
+
+            <path d="M 530 150 L 556 150" fill="none" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow-blue)"/>
+            <text x="543" y="141" fill="#38bdf8" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9">Raise</text>
+
+            <!-- Subscribers -->
+            <rect x="710" y="70" width="100" height="36" rx="6" fill="#1e293b" stroke="#10b981"/>
+            <text x="760" y="92" fill="#cbd5e1" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5">HealthUI</text>
+
+            <rect x="710" y="120" width="100" height="36" rx="6" fill="#1e293b" stroke="#10b981"/>
+            <text x="760" y="142" fill="#cbd5e1" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5">AudioManager</text>
+
+            <rect x="710" y="170" width="100" height="36" rx="6" fill="#1e293b" stroke="#10b981"/>
+            <text x="760" y="192" fill="#cbd5e1" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5">VFXManager</text>
+
+            <rect x="710" y="220" width="100" height="36" rx="6" fill="#1e293b" stroke="#10b981"/>
+            <text x="760" y="242" fill="#cbd5e1" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5">Achievements</text>
+
+            <path d="M 677 132 L 705 92" fill="none" stroke="#10b981" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+            <path d="M 677 144 L 705 138" fill="none" stroke="#10b981" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+            <path d="M 677 156 L 705 186" fill="none" stroke="#10b981" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+            <path d="M 677 168 L 705 236" fill="none" stroke="#10b981" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+        </svg>
+    </div>
+
+    <h3 id="type-specialization">1.2. Cơ chế Generic Static Class <code>EventBus&lt;T&gt;</code> trong CLR &amp; IL2CPP</h3>
+    <p>
+        Điểm thiên tài của mô hình <code class="inline-code">public static class EventBus&lt;T&gt;</code> nằm ở cơ chế <strong>Type Specialization (Generic Static Fields)</strong> của C#:
+    </p>
+    <div class="grid-2">
+        <div class="info-card">
+            <div class="card-header">
+                <div class="card-icon icon-blue">⚡</div>
+                <div class="card-title">Truy cập O(1) — Zero Lookup Overhead</div>
+            </div>
+            <div class="card-body">
+                Mỗi kiểu đóng (closed constructed type) như <code class="inline-code">EventBus&lt;PlayerDiedEvent&gt;</code> hay <code class="inline-code">EventBus&lt;ScoreChangedEvent&gt;</code> được runtime cấp phát <strong>một vùng nhớ static hoàn toàn độc lập</strong>. Khác với EventManager dùng <code class="inline-code">Dictionary&lt;Type, Delegate&gt;</code> phải băm <code class="inline-code">typeof(T)</code> và dò bucket mỗi lần <code class="inline-code">Raise</code>, <code class="inline-code">EventBus&lt;T&gt;.Raise()</code> nhảy thẳng tới địa chỉ tĩnh của kiểu đó.
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="card-header">
+                <div class="card-icon icon-purple">⚙️</div>
+                <div class="card-title">Bên dưới CLR (Mono) &amp; IL2CPP (AOT)</div>
+            </div>
+            <div class="card-body">
+                Trên <strong>CLR/Mono</strong>, JIT tạo <code class="inline-code">MethodTable</code> riêng chứa static field cho từng <code class="inline-code">T</code>. Trên <strong>IL2CPP</strong>, trình biên dịch AOT sinh struct <code class="inline-code">_StaticFields</code> riêng cho mỗi <code class="inline-code">T</code>. Đặc biệt với <code class="inline-code">struct</code> event, IL2CPP sinh mã chuyên biệt hoàn toàn (không qua Generic Sharing) giúp tốc độ ngang ngửa C++ thuần và <strong>không Boxing</strong>.
+            </div>
+        </div>
+    </div>
+
+    <h3 id="memory-gc">1.3. Cơ chế cấp phát bộ nhớ, Boxing &amp; Static GC Root</h3>
+    <p>
+        Hiểu rõ đường đi của bộ nhớ sẽ giúp bạn tối ưu hệ thống Event Bus đạt chuẩn <strong>Zero-GC Allocation</strong> trong vòng lặp gameplay:
+    </p>
+    <ul>
+        <li><strong>Struct Event vs Class Event &amp; Bài toán Boxing:</strong> Nếu event payload là <code class="inline-code">class</code>, mỗi lần gọi <code class="inline-code">Raise(new DamageEvent(...))</code> sẽ cấp phát trên <strong>Managed Heap</strong>, tạo rác GC liên tục. Ngược lại, dùng <code class="inline-code">readonly struct</code> (gọn nhẹ ≤ 16–32 bytes) kết hợp với <code class="inline-code">Action&lt;T&gt;</code> generic giúp truyền tham số qua <strong>Stack / thanh ghi CPU</strong> với <strong>0 Boxing, 0 Heap Allocation</strong>.</li>
+        <li><strong>Delegate Invocation List (<code class="inline-code">MulticastDelegate</code>):</strong> Bản thân <code class="inline-code">Action&lt;T&gt;</code> là kiểu tham chiếu bất biến (immutable). Mỗi lần gọi <code class="inline-code">+=</code> hoặc <code class="inline-code">-=</code>, CLR cấp phát một <code class="inline-code">MulticastDelegate</code> mới và bỏ lại instance cũ cho GC. Do đó, <em>tuyệt đối không Subscribe/Unsubscribe trong <code class="inline-code">Update()</code></em>.</li>
+        <li><strong>Bẫy Static GC Root:</strong> Biến <code class="inline-code">static</code> tồn tại suốt vòng đời <code class="inline-code">AppDomain</code> và đóng vai trò là <strong>GC Root</strong>. Mỗi listener trỏ tới instance method đều giữ <strong>Strong Reference</strong> (<code class="inline-code">_target</code>) tới <code class="inline-code">MonoBehaviour</code> đó. Nếu <code class="inline-code">GameObject</code> bị <code class="inline-code">Destroy()</code> mà quên <code class="inline-code">Unsubscribe</code>, phần Native C++ bị xóa nhưng object C# trên Managed Heap vẫn bị giữ sống vĩnh viễn → <strong>Memory Leak</strong>.</li>
+    </ul>
+
+    <!-- SVG 2: MEMORY LAYOUT & STATIC GC ROOT LEAK -->
+    <div class="diagram-container">
+        <div class="diagram-title"><span>🧠 Bộ Nhớ: Type Specialization, Stack vs Heap &amp; Bẫy Static GC Root</span></div>
+        <svg class="diagram-svg" viewBox="0 0 850 330" width="850" height="330" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <marker id="arrow-purple" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M 0 0 L 8 4 L 0 8 z" fill="#a855f7"/>
+                </marker>
+                <marker id="arrow-cyan" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M 0 0 L 8 4 L 0 8 z" fill="#38bdf8"/>
+                </marker>
+            </defs>
+
+            <rect x="10" y="10" width="830" height="310" rx="10" fill="#0f172a" stroke="#222f49" stroke-width="1.5"/>
+
+            <!-- Left: Static / Type Area (GC Roots) -->
+            <rect x="28" y="28" width="375" height="274" rx="8" fill="#151c2e" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="45" y="54" fill="#38bdf8" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700">Static Storage (GC Roots — Sống suốt AppDomain)</text>
+
+            <rect x="45" y="72" width="340" height="58" rx="6" fill="#0b0f19" stroke="#38bdf8"/>
+            <text x="60" y="95" fill="#e2e8f0" font-family="'JetBrains Mono', monospace" font-size="11.5" font-weight="600">EventBus&lt;PlayerDiedEvent&gt;</text>
+            <text x="60" y="115" fill="#a855f7" font-family="'JetBrains Mono', monospace" font-size="10.5">s_OnEvent (Static Pointer) ─────────▶</text>
+
+            <rect x="45" y="144" width="340" height="58" rx="6" fill="#0b0f19" stroke="#38bdf8"/>
+            <text x="60" y="167" fill="#e2e8f0" font-family="'JetBrains Mono', monospace" font-size="11.5" font-weight="600">EventBus&lt;ScoreChangedEvent&gt;</text>
+            <text x="60" y="187" fill="#34d399" font-family="'JetBrains Mono', monospace" font-size="10.5">s_OnEvent (Vùng nhớ tĩnh độc lập O(1))</text>
+
+            <!-- Stack Box -->
+            <rect x="45" y="218" width="340" height="68" rx="6" fill="#0d2b24" stroke="#10b981" stroke-width="1.5"/>
+            <text x="60" y="242" fill="#34d399" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700">CPU Stack (Zero GC Allocation)</text>
+            <text x="60" y="262" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="10.5">readonly struct Payload → Truyền trực tiếp</text>
+            <text x="60" y="277" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-size="10">Không Boxing, không tạo rác trên Heap!</text>
+
+            <!-- Right: Managed Heap & Leak -->
+            <rect x="435" y="28" width="387" height="274" rx="8" fill="#151c2e" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="453" y="54" fill="#c084fc" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700">Managed Heap (GC Tracked)</text>
+
+            <rect x="453" y="72" width="350" height="72" rx="6" fill="#0b0f19" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="468" y="96" fill="#e2e8f0" font-family="'JetBrains Mono', monospace" font-size="11.5" font-weight="600">MulticastDelegate (Action&lt;T&gt;)</text>
+            <text x="468" y="116" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="10.5">_target ──▶ Giữ Strong Reference</text>
+            <text x="468" y="132" fill="#fbbf24" font-family="'Plus Jakarta Sans', sans-serif" font-size="10">Cấp phát mới mỗi lần gọi += hoặc -=</text>
+
+            <!-- Leaked MonoBehaviour -->
+            <rect x="453" y="176" width="350" height="108" rx="6" fill="#2d121c" stroke="#f43f5e" stroke-width="1.5"/>
+            <text x="468" y="200" fill="#fb7185" font-family="'JetBrains Mono', monospace" font-size="11.5" font-weight="700">Zombie MonoBehaviour (Memory Leak!)</text>
+            <text x="468" y="222" fill="#cbd5e1" font-family="'Plus Jakarta Sans', sans-serif" font-size="11">• Native C++ Object: Đã bị Destroy()</text>
+            <text x="468" y="240" fill="#cbd5e1" font-family="'Plus Jakarta Sans', sans-serif" font-size="11">• Managed C# Wrapper: Vẫn bị giữ bởi _target</text>
+            <text x="468" y="262" fill="#fb7185" font-family="'Plus Jakarta Sans', sans-serif" font-size="10.5" font-weight="600">→ Quên Unsubscribe = GC không thể thu hồi!</text>
+
+            <!-- Arrows -->
+            <path d="M 385 108 L 448 108" fill="none" stroke="#a855f7" stroke-width="2.2" marker-end="url(#arrow-purple)"/>
+            <path d="M 628 144 L 628 171" fill="none" stroke="#a855f7" stroke-width="2.2" marker-end="url(#arrow-purple)"/>
+        </svg>
+    </div>
+</section>
+
+<!-- PHẦN 2: ĐẶC THÙ TRONG UNITY ENGINE -->
+<section class="doc-section" id="unity-internals">
+    <div class="section-header">
+        <span class="section-tag">PHẦN 2</span>
+        <h2>Đặc Thù Trong Unity Engine</h2>
+    </div>
+    <p class="section-lead">
+        Cài đặt <code class="inline-code">EventBus&lt;T&gt;</code> thuần C# rất dễ, nhưng đưa vào Unity phải đối mặt với vòng đời <code class="inline-code">MonoBehaviour</code>, Object Pooling, đa luồng và đặc biệt là tính năng <strong>Disable Domain Reload</strong>.
+    </p>
+
+    <h3 id="monobehaviour-lifecycle">2.1. Vòng đời <code>MonoBehaviour</code>: <code>OnEnable</code>/<code>OnDisable</code> vs <code>Awake</code>/<code>OnDestroy</code></h3>
+    <ul>
+        <li><strong><code class="inline-code">OnEnable()</code> / <code class="inline-code">OnDisable()</code> (Khuyến nghị mặc định):</strong> Phù hợp cho UI, VFX, Enemy, Object Pooling. Khi trả object về Pool (<code class="inline-code">SetActive(false)</code>), nó tự <code class="inline-code">Unsubscribe</code> và ngừng tốn CPU xử lý event; khi bật lại, nó tự <code class="inline-code">Subscribe</code>.</li>
+        <li><strong><code class="inline-code">Awake()</code> / <code class="inline-code">OnDestroy()</code>:</strong> Chỉ dùng cho các Manager/Controller cần nhận event ngay cả khi script đang tắt (<code class="inline-code">enabled == false</code>) hoặc GameObject đang ẩn.</li>
+        <li><strong>Cảnh báo lệch pha &amp; thứ tự khởi tạo:</strong> Tuyệt đối không ghép <code class="inline-code">OnEnable</code> + <code class="inline-code">OnDestroy</code> (bật/tắt nhiều lần sẽ đăng ký trùng lặp N lần!). Ngoài ra, không nên <code class="inline-code">Raise</code> gameplay event trong <code class="inline-code">Awake()</code> vì các listener ở GameObject khác có thể chưa chạy tới <code class="inline-code">OnEnable()</code>.</li>
+    </ul>
+
+    <h3 id="domain-reload">2.2. Bẫy "Disable Domain Reload" &amp; Zombie Listeners</h3>
+    <p>
+        Trong Unity Editor (<em>Project Settings → Editor → Enter Play Mode Settings</em>), khi bạn tắt <strong>Domain Reload</strong> để vào Play Mode nhanh hơn, Unity <strong>không reset các biến <code class="inline-code">static</code></strong> giữa các lần Stop và Play lại.
+    </p>
+    <div class="callout callout-warning">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-content">
+            <div class="callout-title">Hiện tượng Zombie Listeners &amp; MissingReferenceException</div>
+            <div class="callout-text">
+                Nếu không dọn dẹp <code class="inline-code">EventBus&lt;T&gt;</code>, các delegate đăng ký từ Play Session 1 vẫn nằm nguyên trong biến <code class="inline-code">static s_OnEvent</code> ở Session 2. Khi Session 2 gọi <code class="inline-code">Raise()</code>, bus sẽ gọi nhầm vào các <code class="inline-code">MonoBehaviour</code> đã chết của Session 1 và ném lỗi <code class="inline-code">MissingReferenceException</code>.
+            </div>
+        </div>
+    </div>
+
+    <!-- SVG 3: DOMAIN RELOAD TRAP -->
+    <div class="diagram-container">
+        <div class="diagram-title"><span>🔄 Vòng Đời Static EventBus Khi Tắt Domain Reload</span></div>
+        <svg class="diagram-svg" viewBox="0 0 850 260" width="850" height="260" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <marker id="arrow-r3" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M 0 0 L 8 4 L 0 8 z" fill="#f43f5e"/>
+                </marker>
+                <marker id="arrow-g3" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M 0 0 L 8 4 L 0 8 z" fill="#10b981"/>
+                </marker>
+            </defs>
+            <rect x="10" y="10" width="830" height="240" rx="10" fill="#0f172a" stroke="#222f49" stroke-width="1.5"/>
+
+            <!-- Row 1: Bad Path -->
+            <text x="30" y="45" fill="#fb7185" font-family="'Plus Jakarta Sans', sans-serif" font-size="12.5" font-weight="700">❌ Không xử lý Clear (Domain Reload OFF)</text>
+            <rect x="30" y="60" width="165" height="50" rx="6" fill="#1e293b" stroke="#38bdf8"/>
+            <text x="112" y="82" fill="#f1f5f9" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600">Play Session 1</text>
+            <text x="112" y="98" fill="#94a3b8" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10">Subscribe(Obj_1)</text>
+
+            <rect x="245" y="60" width="190" height="50" rx="6" fill="#2d121c" stroke="#f43f5e"/>
+            <text x="340" y="82" fill="#fb7185" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600">Stop Play (Static còn nguyên)</text>
+            <text x="340" y="98" fill="#cbd5e1" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10">s_OnEvent vẫn giữ Obj_1</text>
+
+            <rect x="485" y="60" width="335" height="50" rx="6" fill="#2d121c" stroke="#f43f5e" stroke-width="1.8"/>
+            <text x="652" y="82" fill="#fb7185" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700">Play Session 2 → Raise() gọi vào Obj_1!</text>
+            <text x="652" y="98" fill="#f1f5f9" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10">💥 MissingReferenceException (Zombie)</text>
+
+            <path d="M 195 85 L 239 85" fill="none" stroke="#f43f5e" stroke-width="2" marker-end="url(#arrow-r3)"/>
+            <path d="M 435 85 L 479 85" fill="none" stroke="#f43f5e" stroke-width="2" marker-end="url(#arrow-r3)"/>
+
+            <!-- Row 2: Good Path -->
+            <text x="30" y="150" fill="#34d399" font-family="'Plus Jakarta Sans', sans-serif" font-size="12.5" font-weight="700">✅ Có EventBusRegistry + SubsystemRegistration</text>
+            <rect x="30" y="165" width="165" height="50" rx="6" fill="#1e293b" stroke="#38bdf8"/>
+            <text x="112" y="187" fill="#f1f5f9" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600">Play Session 1</text>
+            <text x="112" y="203" fill="#94a3b8" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10">Subscribe(Obj_1)</text>
+
+            <rect x="245" y="165" width="230" height="50" rx="6" fill="#0d2b24" stroke="#10b981"/>
+            <text x="360" y="187" fill="#34d399" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600">ExitingPlayMode / SubsystemReg</text>
+            <text x="360" y="203" fill="#cbd5e1" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10">ClearAllBuses() → s_OnEvent = null</text>
+
+            <rect x="525" y="165" width="295" height="50" rx="6" fill="#0d2b24" stroke="#10b981" stroke-width="1.8"/>
+            <text x="672" y="187" fill="#34d399" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700">Play Session 2 → Bus Sạch Hoàn Toàn</text>
+            <text x="672" y="203" fill="#f1f5f9" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10">Chỉ gọi các listener mới của Session 2 ✓</text>
+
+            <path d="M 195 190 L 239 190" fill="none" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-g3)"/>
+            <path d="M 475 190 L 519 190" fill="none" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-g3)"/>
+        </svg>
+    </div>
+
+    <h3 id="concurrency-reentrancy">2.3. Multi-threading, Execution Order &amp; Re-entrancy khi đang <code>Raise</code></h3>
+    <ul>
+        <li><strong>Unity Main Thread:</strong> <code class="inline-code">EventBus&lt;T&gt;</code> không thread-safe và Unity API chỉ chạy trên Main Thread. Nếu dùng <code class="inline-code">Task.Run</code>, cần đẩy sự kiện vào <code class="inline-code">ConcurrentQueue</code> rồi <code class="inline-code">Raise</code> trong <code class="inline-code">Update()</code>.</li>
+        <li><strong>Execution Order không xác định:</strong> Thứ tự chạy của các Subscriber phụ thuộc vào thứ tự gọi <code class="inline-code">Subscribe()</code> lúc runtime (thường theo thứ tự Hierarchy). Tuyệt đối không viết logic giả định Subscriber A chạy trước B.</li>
+        <li><strong>Sửa đổi listener ngay trong lúc <code class="inline-code">Raise</code> (Re-entrancy):</strong> Nhờ <code class="inline-code">Action&lt;T&gt;</code> (<code class="inline-code">MulticastDelegate</code>) là immutable, khi đang <code class="inline-code">s_OnEvent?.Invoke(e)</code>, nó duyệt trên snapshot tại thời điểm bắt đầu gọi nên không văng <code class="inline-code">InvalidOperationException</code> nếu có ai đó <code class="inline-code">Unsubscribe</code> giữa chừng (khác với tự dùng <code class="inline-code">List&lt;Action&lt;T&gt;&gt;</code> + <code class="inline-code">foreach</code>).</li>
+    </ul>
+</section>
+
+<!-- PHẦN 3: ƯU ĐIỂM & NHƯỢC ĐIỂM -->
+<section class="doc-section" id="pros-cons">
+    <div class="section-header">
+        <span class="section-tag">PHẦN 3</span>
+        <h2>Ưu Điểm &amp; Nhược Điểm Toàn Diện</h2>
+    </div>
+    <p class="section-lead">
+        Đánh giá khách quan các lợi ích về mặt kiến trúc/hiệu năng đối chiếu với những rủi ro tiềm ẩn khi vận hành <code class="inline-code">EventBus&lt;T&gt;</code> trong dự án thực tế.
+    </p>
+
+    <div class="grid-2">
+        <div class="info-card" style="border-top: 3px solid var(--border-success);">
+            <div class="card-header">
+                <div class="card-icon icon-green">✅</div>
+                <div class="card-title">Ưu Điểm Nổi Bật</div>
+            </div>
+            <div class="card-body">
+                <ul style="padding-left: 18px; margin: 0;">
+                    <li style="margin-bottom: 8px;"><strong>Decoupling tối đa:</strong> Publisher và Subscriber không giữ reference của nhau, triệt tiêu Circular Dependency giữa các <code class="inline-code">.asmdef</code>.</li>
+                    <li style="margin-bottom: 8px;"><strong>Type-safe tại Compile-time:</strong> Loại bỏ hoàn toàn lỗi gõ sai chuỗi như string-based event (<code class="inline-code">"OnPlayerDead"</code>), tận dụng tối đa IntelliSense.</li>
+                    <li style="margin-bottom: 8px;"><strong>Hiệu năng O(1) &amp; Zero-GC:</strong> Truy cập thẳng static field, không tốn hash lookup của <code class="inline-code">Dictionary</code>, không Boxing nếu payload là <code class="inline-code">readonly struct</code>.</li>
+                    <li><strong>Siêu gọn nhẹ:</strong> Chỉ ~20–50 dòng code cốt lõi, dễ hiểu, không cần kéo theo thư viện hay DI Container nặng nề.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="info-card" style="border-top: 3px solid var(--border-danger);">
+            <div class="card-header">
+                <div class="card-icon icon-red">❌</div>
+                <div class="card-title">Nhược Điểm &amp; Rủi Ro</div>
+            </div>
+            <div class="card-body">
+                <ul style="padding-left: 18px; margin: 0;">
+                    <li style="margin-bottom: 8px;"><strong>Memory Leak qua Static GC Root:</strong> Quên <code class="inline-code">Unsubscribe</code> sẽ giữ xác object trên Managed Heap vĩnh viễn; tắt Domain Reload gây Zombie Listeners.</li>
+                    <li style="margin-bottom: 8px;"><strong>Implicit Control Flow (Khó Debug):</strong> Bấm <em>"Find All References"</em> vào <code class="inline-code">Raise()</code> không thấy ngay hàm nhận, khó trace khi chuỗi event nối tiếp nhau.</li>
+                    <li style="margin-bottom: 8px;"><strong>Khó Unit Test / Mock:</strong> Dùng <code class="inline-code">static</code> global state khiến các bài test dễ nhiễu nhau nếu quên <code class="inline-code">Clear()</code> ở <code class="inline-code">[TearDown]</code>.</li>
+                    <li><strong>Không kiểm soát thứ tự &amp; Nguy cơ Loop:</strong> Thứ tự gọi listener ngẫu nhiên; Event A bắn B rồi B bắn ngược A sẽ gây <code class="inline-code">StackOverflowException</code>.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PHẦN 4: MA TRẬN QUYẾT ĐỊNH -->
+<section class="doc-section" id="decision-matrix">
+    <div class="section-header">
+        <span class="section-tag">PHẦN 4</span>
+        <h2>Ma Trận Quyết Định &amp; Phương Án Thay Thế</h2>
+    </div>
+    <p class="section-lead">
+        Không có pattern nào là "viên đạn bạc". Hãy dùng bảng ma trận và cây quyết định dưới đây để chọn đúng công cụ giao tiếp cho từng bài toán trong Unity.
+    </p>
+
+    <h3 id="when-to-use">4.1. Khi nào NÊN dùng vs KHÔNG NÊN dùng <code>EventBus&lt;T&gt;</code></h3>
+    <div class="comparison-table-wrapper">
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Tình huống sử dụng</th>
+                    <th>Khuyến nghị</th>
+                    <th>Lý do kỹ thuật</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Cross-system Broadcast (1-to-Many):</strong> <code class="inline-code">Combat</code> → <code class="inline-code">HUD</code>, <code class="inline-code">Audio</code>, <code class="inline-code">VFX</code>, <code class="inline-code">Achievement</code></td>
+                    <td><strong style="color: var(--success-text);">NÊN DÙNG ✅</strong></td>
+                    <td>Các hệ thống thuộc domain khác nhau, không nên giữ tham chiếu trực tiếp lẫn nhau.</td>
+                </tr>
+                <tr>
+                    <td><strong>Sự kiện toàn cục:</strong> <code class="inline-code">PauseGame</code>, <code class="inline-code">CurrencyChanged</code>, <code class="inline-code">QuestUpdated</code></td>
+                    <td><strong style="color: var(--success-text);">NÊN DÙNG ✅</strong></td>
+                    <td>Giảm spaghetti reference giữa các Scene Managers và UI Panels.</td>
+                </tr>
+                <tr>
+                    <td><strong>Quan hệ Cha–Con trực tiếp (1–1 / cùng Prefab):</strong> <code class="inline-code">PlayerController</code> → <code class="inline-code">Animator</code></td>
+                    <td><strong style="color: var(--danger-text);">KHÔNG NÊN ❌</strong></td>
+                    <td>Dùng C# <code class="inline-code">event</code> hoặc gọi method trực tiếp để code tường minh, dễ trace.</td>
+                </tr>
+                <tr>
+                    <td><strong>Logic phụ thuộc thứ tự chặt chẽ:</strong> Tính Giáp → Trừ Máu → Kiểm tra Chết → Rớt Đồ</td>
+                    <td><strong style="color: var(--danger-text);">KHÔNG NÊN ❌</strong></td>
+                    <td><code class="inline-code">EventBus</code> không đảm bảo execution order; hãy dùng pipeline tuần tự.</td>
+                </tr>
+                <tr>
+                    <td><strong>Cần trả về giá trị (Request–Response):</strong> <code class="inline-code">CalculateFinalDamage()</code></td>
+                    <td><strong style="color: var(--danger-text);">KHÔNG NÊN ❌</strong></td>
+                    <td><code class="inline-code">EventBus</code> là Fire-and-Forget 1 chiều. Dùng Interface hoặc Direct Call.</td>
+                </tr>
+                <tr>
+                    <td><strong>Cần Undo/Redo, Replay, Lockstep</strong></td>
+                    <td><strong style="color: var(--danger-text);">KHÔNG NÊN ❌</strong></td>
+                    <td>Dùng <strong>Command Pattern</strong> để đóng gói hành động thành object có thể lưu lịch sử.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 id="alternatives">4.2. So sánh <code>EventBus&lt;T&gt;</code> với các giải pháp thay thế</h3>
+    <div class="comparison-table-wrapper">
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Giải pháp</th>
+                    <th>Coupling</th>
+                    <th>Hiệu năng (Runtime / GC)</th>
+                    <th>An toàn &amp; Debug</th>
+                    <th>Độ phức tạp</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>C# <code class="inline-code">event</code> trực tiếp</strong></td>
+                    <td>Trung bình (1 chiều)</td>
+                    <td>Rất cao (O(1), 0 boxing)</td>
+                    <td>Rất dễ trace, tự hủy theo instance</td>
+                    <td>Rất thấp</td>
+                </tr>
+                <tr>
+                    <td><strong><code class="inline-code">EventBus&lt;T&gt;</code> (Generic Static)</strong></td>
+                    <td>Thấp (Decoupled)</td>
+                    <td>Rất cao (O(1) static field, 0 boxing với <code class="inline-code">struct</code>)</td>
+                    <td>Khó trace (Implicit flow), cần xử lý Domain Reload</td>
+                    <td>Thấp</td>
+                </tr>
+                <tr>
+                    <td><strong><code class="inline-code">Dictionary&lt;Type, Delegate&gt;</code></strong></td>
+                    <td>Thấp (Decoupled)</td>
+                    <td>Trung bình (tốn Hash lookup, dễ dính Boxing)</td>
+                    <td>Dễ <code class="inline-code">Clear()</code> tập trung, chậm hơn <code class="inline-code">EventBus&lt;T&gt;</code></td>
+                    <td>Thấp</td>
+                </tr>
+                <tr>
+                    <td><strong>ScriptableObject Event Channel</strong></td>
+                    <td>Thấp (Asset-based)</td>
+                    <td>Tốt (<code class="inline-code">UnityEvent</code> có overhead nhẹ)</td>
+                    <td>Trực quan trong Inspector, sinh nhiều file <code class="inline-code">.asset</code></td>
+                    <td>Trung bình</td>
+                </tr>
+                <tr>
+                    <td><strong>UniRx / R3 / MessagePipe</strong></td>
+                    <td>Rất thấp (Scoped DI)</td>
+                    <td>Tốt nhất (Zero-alloc, tối ưu cao)</td>
+                    <td>Có <code class="inline-code">AddTo(this)</code> tự hủy, hỗ trợ Async/Unit Test</td>
+                    <td>Cao</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- SVG 4: DECISION FLOWCHART -->
+    <div class="diagram-container">
+        <div class="diagram-title"><span>🧭 Cây Quyết Định Chọn Công Cụ Giao Tiếp Trong Unity</span></div>
+        <svg class="diagram-svg" viewBox="0 0 850 350" width="850" height="350" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <marker id="arrow-d" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M 0 0 L 8 4 L 0 8 z" fill="#94a3b8"/>
+                </marker>
+            </defs>
+            <rect x="10" y="10" width="830" height="330" rx="10" fill="#0f172a" stroke="#222f49" stroke-width="1.5"/>
+
+            <!-- Start -->
+            <rect x="290" y="25" width="270" height="40" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+            <text x="425" y="50" fill="#38bdf8" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700">Cần giao tiếp giữa các thành phần</text>
+
+            <!-- Q1 -->
+            <polygon points="425,85 570,120 425,155 280,120" fill="#152438" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="425" y="117" fill="#e2e8f0" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11">1–1 cùng Prefab hoặc</text>
+            <text x="425" y="131" fill="#e2e8f0" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11">cần giá trị trả về?</text>
+            <path d="M 425 65 L 425 80" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow-d)"/>
+
+            <!-- Q1 Yes -->
+            <rect x="630" y="98" width="190" height="44" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="725" y="118" fill="#38bdf8" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700">Direct Call / C# event</text>
+            <text x="725" y="133" fill="#94a3b8" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="9.5">Tường minh, dễ trace</text>
+            <path d="M 570 120 L 624 120" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow-d)"/>
+            <text x="597" y="113" fill="#34d399" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700">Có</text>
+
+            <!-- Q2 -->
+            <polygon points="425,180 570,215 425,250 280,215" fill="#152438" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="425" y="212" fill="#e2e8f0" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11">Có dùng DI Container</text>
+            <text x="425" y="226" fill="#e2e8f0" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11">(VContainer/Zenject)?</text>
+            <path d="M 425 155 L 425 175" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow-d)"/>
+            <text x="445" y="170" fill="#fb7185" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700">Không</text>
+
+            <!-- Q2 Yes -->
+            <rect x="630" y="193" width="190" height="44" rx="6" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="725" y="213" fill="#c084fc" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700">MessagePipe / R3</text>
+            <text x="725" y="228" fill="#94a3b8" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="9.5">Scoped DI, dễ Mock/Test</text>
+            <path d="M 570 215 L 624 215" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow-d)"/>
+            <text x="597" y="208" fill="#34d399" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700">Có</text>
+
+            <!-- Q2 No -> EventBus<T> vs SO -->
+            <rect x="30" y="193" width="195" height="44" rx="6" fill="#1e293b" stroke="#fbbf24" stroke-width="1.5"/>
+            <text x="127" y="213" fill="#fbbf24" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700">SO Event Channel</text>
+            <text x="127" y="228" fill="#94a3b8" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="9.5">Nếu cần Designer kéo Inspector</text>
+            <path d="M 280 215 L 231 215" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow-d)"/>
+            <text x="255" y="208" fill="#fbbf24" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="9.5" font-weight="700">No-Code</text>
+
+            <!-- Final: EventBus<T> -->
+            <rect x="305" y="275" width="240" height="48" rx="8" fill="#0d2b24" stroke="#10b981" stroke-width="2"/>
+            <text x="425" y="297" fill="#34d399" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12.5" font-weight="700">EventBus&lt;T&gt; (Static)</text>
+            <text x="425" y="314" fill="#cbd5e1" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="10">Gọn nhẹ, tốc độ O(1), Zero-GC</text>
+            <path d="M 425 250 L 425 270" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow-d)"/>
+            <text x="455" y="265" fill="#34d399" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700">Code-first</text>
+        </svg>
+    </div>
+</section>
+
+<!-- PHẦN 5: THỰC CHIẾN ĐỐI CHIẾU -->
+<section class="doc-section" id="best-practices">
+    <div class="section-header">
+        <span class="section-tag">PHẦN 5</span>
+        <h2>Thực Chiến Đối Chiếu: Anti-Pattern vs Best Practice</h2>
+    </div>
+    <p class="section-lead">
+        Từ mẫu <code class="inline-code">EventBus&lt;T&gt;</code> tối giản nhất đến phiên bản chuẩn Production, dưới đây là 4 cặp code đối chiếu các lỗi phổ biến nhất mà lập trình viên Unity hay mắc phải.
+    </p>
+
+    <h3 id="case-1">5.1. Cài đặt <code>EventBus&lt;T&gt;</code>: Bản thô sơ vs Chuẩn Production (An toàn Domain Reload)</h3>
+    <div class="code-block-wrapper">
+        <div class="code-block-header">
+            <span class="code-label label-danger">❌ ANTI-PATTERN: Không constraint, hở public field &amp; chết khi tắt Domain Reload</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        </div>
+        <pre><code class="language-csharp">using System;
+
+// Lỗi 1: Không có constraint -> ai cũng có thể tạo EventBus&lt;int&gt;, EventBus&lt;string&gt; gây rác type.
+// Lỗi 2: Expose public static Action trực tiếp -> bên ngoài có thể gán "= null" xóa sạch listener khác!
+// Lỗi 3: Không tự Clear() khi Disable Domain Reload -> Zombie Listeners &amp; MissingReferenceException.
+public static class NaiveEventBus&lt;T&gt;
+{
+    public static Action&lt;T&gt; OnEvent;
+
+    public static void Subscribe(Action&lt;T&gt; listener) =&gt; OnEvent += listener;
+    public static void Unsubscribe(Action&lt;T&gt; listener) =&gt; OnEvent -= listener;
+    public static void Raise(T eventData) =&gt; OnEvent?.Invoke(eventData);
+}</code></pre>
+    </div>
+
+    <div class="code-block-wrapper">
+        <div class="code-block-header">
+            <span class="code-label label-success">✅ BEST PRACTICE: Ràng buộc struct + IGameEvent, Đóng gói &amp; Tự Clear khi SubsystemRegistration</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        </div>
+        <pre><code class="language-csharp">using System;
+using System.Collections.Generic;
+using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+public interface IGameEvent { }
+
+internal static class EventBusRegistry
+{
+    private static readonly List&lt;Action&gt; s_ClearActions = new();
+
+    public static void Register(Action clearAction)
+    {
+        if (!s_ClearActions.Contains(clearAction))
+            s_ClearActions.Add(clearAction);
+    }
+
+    // Chạy sớm nhất mỗi khi vào Play Mode, KỂ CẢ KHI Disable Domain Reload
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    public static void ClearAllBuses()
+    {
+        for (int i = 0; i &lt; s_ClearActions.Count; i++)
+            s_ClearActions[i]?.Invoke();
+        // LƯU Ý: KHÔNG gọi s_ClearActions.Clear() ở đây vì static ctor của EventBus&lt;T&gt;
+        // sẽ không chạy lại ở Play Session sau nếu Domain Reload bị tắt!
+    }
+
+#if UNITY_EDITOR
+    [InitializeOnLoadMethod]
+    private static void InitEditor()
+    {
+        EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+    }
+
+    private static void OnPlayModeStateChanged(PlayModeStateChange state)
+    {
+        if (state == PlayModeStateChange.ExitingPlayMode)
+            ClearAllBuses();
+    }
+#endif
+}
+
+public static class EventBus&lt;T&gt; where T : struct, IGameEvent
+{
+    private static Action&lt;T&gt; s_OnEvent;
+
+    static EventBus() =&gt; EventBusRegistry.Register(Clear);
+
+    public static void Subscribe(Action&lt;T&gt; listener) =&gt; s_OnEvent += listener;
+    public static void Unsubscribe(Action&lt;T&gt; listener) =&gt; s_OnEvent -= listener;
+    public static void Raise(T eventData) =&gt; s_OnEvent?.Invoke(eventData);
+    public static void Clear() =&gt; s_OnEvent = null;
+}</code></pre>
+    </div>
+
+    <h3 id="case-2">5.2. Vòng đời Subscribe/Unsubscribe: Lambda ẩn danh vs Named Method đối xứng</h3>
+    <div class="code-block-wrapper">
+        <div class="code-block-header">
+            <span class="code-label label-danger">❌ ANTI-PATTERN: Dùng Lambda ẩn danh &amp; ghép sai vòng đời</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        </div>
+        <pre><code class="language-csharp">public class BadHealthUI : MonoBehaviour
+{
+    private void Start()
+    {
+        // Lambda tạo ra một delegate instance mới -&gt; KHÔNG THỂ Unsubscribe bằng -= được!
+        EventBus&lt;PlayerDamagedEvent&gt;.Subscribe(e =&gt; UpdateBar(e.CurrentHp));
+    }
+
+    private void OnDestroy()
+    {
+        // VÔ TÁC DỤNG: Lambda mới khác hoàn toàn instance lambda đã tạo trong Start()!
+        // BadHealthUI sẽ bị rò rỉ bộ nhớ vĩnh viễn trong static GC Root.
+        EventBus&lt;PlayerDamagedEvent&gt;.Unsubscribe(e =&gt; UpdateBar(e.CurrentHp));
+    }
+
+    private void UpdateBar(int hp) { /* ... */ }
+}</code></pre>
+    </div>
+
+    <div class="code-block-wrapper">
+        <div class="code-block-header">
+            <span class="code-label label-success">✅ BEST PRACTICE: Cặp đối xứng OnEnable / OnDisable với Named Method</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        </div>
+        <pre><code class="language-csharp">public class GoodHealthUI : MonoBehaviour
+{
+    // ĐỐI XỨNG 1:1 -&gt; Bật lên là nghe, tắt đi (hoặc Destroy) là ngừng nghe ngay.
+    // An toàn tuyệt đối với Object Pooling và Scene Unload.
+    private void OnEnable() =&gt; EventBus&lt;PlayerDamagedEvent&gt;.Subscribe(OnPlayerDamaged);
+    private void OnDisable() =&gt; EventBus&lt;PlayerDamagedEvent&gt;.Unsubscribe(OnPlayerDamaged);
+
+    private void OnPlayerDamaged(PlayerDamagedEvent e) =&gt; UpdateBar(e.CurrentHp);
+    private void UpdateBar(int hp) { /* ... */ }
+}</code></pre>
+    </div>
+
+    <h3 id="case-3">5.3. Event Payload: <code>class</code> / Boxing gây GC Spike vs <code>readonly struct</code> Zero-GC</h3>
+    <div class="code-block-wrapper">
+        <div class="code-block-header">
+            <span class="code-label label-danger">❌ ANTI-PATTERN: Payload là class hoặc truyền qua interface không generic</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        </div>
+        <pre><code class="language-csharp">// Lỗi: Class cấp phát trên Managed Heap mỗi lần 'new'
+public class BadMoveEvent : IGameEvent
+{
+    public Vector3 Position;
+    public BadMoveEvent(Vector3 pos) =&gt; Position = pos;
+}
+
+void Update()
+{
+    // Tạo rác GC mỗi frame -&gt; gây giật khung hình (GC Spike)!
+    EventBus&lt;BadMoveEvent&gt;.Raise(new BadMoveEvent(transform.position));
+}</code></pre>
+    </div>
+
+    <div class="code-block-wrapper">
+        <div class="code-block-header">
+            <span class="code-label label-success">✅ BEST PRACTICE: readonly struct với Generic EventBus&lt;T&gt; (0 Heap Alloc, Immutable)</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        </div>
+        <pre><code class="language-csharp">// 1. readonly struct: Cấp phát trên Stack, immutable (subscriber không thể sửa dữ liệu giữa chừng).
+public readonly struct PlayerMovedEvent : IGameEvent
+{
+    public readonly int EntityId;
+    public readonly Vector3 Position;
+
+    public PlayerMovedEvent(int entityId, Vector3 position)
+    {
+        EntityId = entityId;
+        Position = position;
+    }
+}
+
+void Update()
+{
+    // ZERO GC Allocation: Không cấp phát Heap, không Boxing.
+    EventBus&lt;PlayerMovedEvent&gt;.Raise(new PlayerMovedEvent(gameObject.GetInstanceID(), transform.position));
+}</code></pre>
+    </div>
+
+    <h3 id="case-4">5.4. Kiểm soát luồng: Ping-Pong Event Loop vs Fire-and-Forget cuối Pipeline</h3>
+    <div class="code-block-wrapper">
+        <div class="code-block-header">
+            <span class="code-label label-danger">❌ ANTI-PATTERN: Bắn Event chéo nhau tạo vòng lặp vô hạn &amp; phụ thuộc thứ tự</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        </div>
+        <pre><code class="language-csharp">// Hệ thống A bắn PlayerDiedEvent -&gt; Hệ thống B nghe và bắn lại TryReviveEvent
+// -&gt; Hệ thống A nghe TryReviveEvent thất bại lại bắn PlayerDiedEvent
+// =&gt; StackOverflowException làm crash Unity ngay lập tức!
+// Ngoài ra, nếu SaveSystem và ScoreSystem cùng nghe PlayerDiedEvent, thứ tự chạy là NGẪU NHIÊN.</code></pre>
+    </div>
+
+    <div class="code-block-wrapper">
+        <div class="code-block-header">
+            <span class="code-label label-success">✅ BEST PRACTICE: Xử lý logic tuần tự xong xuôi rồi mới Raise thông báo 1 chiều</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        </div>
+        <pre><code class="language-csharp">public void ApplyDamage(int rawDamage)
+{
+    // 1. Logic cốt lõi có thứ tự chặt chẽ thực hiện TUẦN TỰ bằng direct call
+    int finalDamage = _armor.Mitigate(rawDamage);
+    _hp -= finalDamage;
+
+    if (_hp &lt;= 0 &amp;&amp; !_reviveModule.TryConsumeRevive(ref _hp))
+    {
+        // 2. Chỉ khi state ĐÃ CHỐT XONG hoàn toàn mới phát EventBus 1 chiều
+        // cho UI, Audio, Analytics tự phản ứng độc lập.
+        EventBus&lt;PlayerDiedEvent&gt;.Raise(new PlayerDiedEvent(_score.CurrentScore));
+    }
+}</code></pre>
+    </div>
+</section>
+
+<!-- PHẦN 6: SENIOR CHECKLIST -->
+<section class="doc-section" id="checklist">
+    <div class="section-header">
+        <span class="section-tag">PHẦN 6</span>
+        <h2>Senior Checklist Trước Khi Merge Pull Request</h2>
+    </div>
+    <p class="section-lead">
+        Kiểm tra nhanh 6 tiêu chuẩn vàng dưới đây trước khi đưa code sử dụng <code class="inline-code">EventBus&lt;T&gt;</code> vào nhánh chính:
+    </p>
+
+    <ul class="checklist">
+        <li class="checklist-item">
+            <span class="check-icon">✅</span>
+            <div><strong>Đối xứng Subscribe / Unsubscribe:</strong> Mọi lệnh <code class="inline-code">Subscribe</code> trong <code class="inline-code">OnEnable</code> đều có cặp <code class="inline-code">Unsubscribe</code> tương ứng trong <code class="inline-code">OnDisable</code> (hoặc <code class="inline-code">Awake</code> / <code class="inline-code">OnDestroy</code>), tuyệt đối không dùng lambda ẩn danh.</div>
+        </li>
+        <li class="checklist-item">
+            <span class="check-icon">✅</span>
+            <div><strong>Payload là <code class="inline-code">readonly struct</code>:</strong> Sự kiện kế thừa <code class="inline-code">IGameEvent</code> được khai báo là <code class="inline-code">readonly struct</code> gọn nhẹ để đạt Zero-GC Allocation và tránh subscriber sửa dữ liệu của nhau.</div>
+        </li>
+        <li class="checklist-item">
+            <span class="check-icon">✅</span>
+            <div><strong>An toàn Domain Reload:</strong> Đã tích hợp <code class="inline-code">EventBusRegistry.ClearAllBuses()</code> với <code class="inline-code">[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]</code> và không xóa nhầm danh sách <code class="inline-code">s_ClearActions</code>.</div>
+        </li>
+        <li class="checklist-item">
+            <span class="check-icon">✅</span>
+            <div><strong>Không phụ thuộc Execution Order:</strong> Không có hai subscriber nào cùng lắng nghe một event mà logic của subscriber này đòi hỏi phải chạy sau subscriber kia.</div>
+        </li>
+        <li class="checklist-item">
+            <span class="check-icon">✅</span>
+            <div><strong>Không tạo Event Loop:</strong> Đã kiểm tra luồng sự kiện đảm bảo không có chuỗi gọi vòng tròn (Event A → Event B → Event A).</div>
+        </li>
+        <li class="checklist-item">
+            <span class="check-icon">✅</span>
+            <div><strong>Unit Test sạch sẽ:</strong> Mọi bài Unit Test có đụng tới <code class="inline-code">EventBus&lt;T&gt;</code> đều gọi <code class="inline-code">EventBusRegistry.ClearAllBuses()</code> trong <code class="inline-code">[TearDown]</code>.</div>
+        </li>
+    </ul>
+</section>
+
+    </main>
+
+    <!-- HIGHLIGHT.JS SCRIPT -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+    <script>
+        // Init Syntax Highlighting
+        hljs.highlightAll();
+
+        // Theme Toggle Logic
+        const themeBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const html = document.documentElement;
+
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+
+        // Copy Code Functionality
+        function copyCode(btn) {
+            const pre = btn.closest('.code-block-wrapper').querySelector('pre code');
+            navigator.clipboard.writeText(pre.innerText).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = 'Đã chép! ✓';
+                btn.style.color = '#34d399';
+                btn.style.borderColor = '#10b981';
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.color = '';
+                    btn.style.borderColor = '';
+                }, 2000);
+            });
+        }
+
+        // Mobile Menu Toggle
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+
+        mobileBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        // Active Link Highlighting on Scroll
+        const sections = document.querySelectorAll('.doc-section, #intro');
+        const navLinks = document.querySelectorAll('.sidebar .nav-link');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
